@@ -1,0 +1,32 @@
+{
+  "schemaVersion": 1,
+  "id": "artist",
+  "version": "${version}",
+  "name": "Artist",
+  "description": "",
+  "authors": [],
+  "contact": {},
+  "license": "All-Rights-Reserved",
+  "icon": "assets/artist/icon.png",
+  "environment": "client",
+  "entrypoints": {
+    "client": [
+      "net.ofts.artist.client.ArtistClient"
+    ],
+    "main": [
+      "net.ofts.artist.Artist"
+    ]
+  },
+  "mixins": [
+    "artist.mixins.json",
+    {
+      "config": "artist.client.mixins.json",
+      "environment": "client"
+    }
+  ],
+  "depends": {
+    "fabricloader": ">=${loader_version}",
+    "fabric-api": "*",
+    "minecraft": "${minecraft_version}"
+  }
+}
