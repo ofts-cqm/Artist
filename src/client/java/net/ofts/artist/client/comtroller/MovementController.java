@@ -1,4 +1,144 @@
 package net.ofts.artist.client.comtroller;
 
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.multiplayer.ClientLevel;
+import net.minecraft.client.player.ClientInput;
+import net.minecraft.client.player.LocalPlayer;
+import net.minecraft.core.BlockPos;
+import net.minecraft.network.chat.Component;
+import net.minecraft.world.item.Item;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.phys.Vec3;
+import net.ofts.artist.client.BotInput;
+import net.ofts.artist.client.Config;
+import net.ofts.artist.client.DesktopNotifier;
+import net.ofts.artist.client.RawKeyInjector;
+import net.ofts.artist.client.menu.MenuManager;
+import org.lwjgl.glfw.GLFW;
+
+import java.util.HashSet;
+import java.util.Objects;
+import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
+
 public class MovementController {
+    private static boolean run = false;
+    private static ClientInput oldInput = null;
+
+    public static void toggle(){
+        if (run) pause();
+        else start();
+    }
+
+    public static void start(){
+        run = true;
+        LocalPlayer player = Minecraft.getInstance().player;
+        assert player != null;
+        getOrInstall(player).setForward(true);
+        player.displayClientMessage(Component.literal("Start Painting!"), false);
+    }
+
+    public static void pause(){
+        run = false;
+        LocalPlayer player = Minecraft.getInstance().player;
+        assert player != null;
+        getOrInstall(player).setForward(false);
+        player.input = oldInput;
+    }
+
+    private static Vec3 direction = new Vec3(0, 0, 0);
+
+    private static void update(){
+        if (!run) return;
+
+        Minecraft client = Minecraft.getInstance();
+        LocalPlayer player = client.player;
+        assert player != null;
+        Vec3 playerPos = player.position();
+        double minDis = Double.MAX_VALUE;
+        ClientLevel level = client.level;
+        assert level != null;
+        boolean has = false;
+        Item target = null;
+        int cumulativeError = 0;
+
+        for (Config.Carpets carpet : Config.targets){
+            for (BlockPos pos : Config.blockList.getOrDefault(carpet, new HashSet<>())){
+                BlockState state;
+                try { state = level.getBlockState(pos); } catch (Exception e) { continue; }
+
+                if (state.isAir() && Config.blockMap.containsKey(pos)){
+                    has = true;
+                    Vec3 dir2 = new Vec3(pos).subtract(playerPos);
+                    if (dir2.length() < minDis){
+                        minDis = dir2.length();
+                        direction = dir2;
+                        target = carpet.block.asItem();
+                    }
+                }else if (Config.blockMap.containsKey(pos) && !state.is(Config.blockMap.get(pos))){
+                    cumulativeError++;
+                    if (cumulativeError > 5){
+                        pause();
+                        player.displayClientMessage(Component.literal("Cumulative Error Exceeds Threshold, Stopping"), false);
+                        DesktopNotifier.notify("Artist", "Auto Painting Paused: Cumulative Error Exceeds Threshold, Stopping");
+                        return;
+                    }
+                }
+            }
+        }
+
+        if (!has) {
+            pause();
+            DesktopNotifier.notify("Artist", "Task Finished!");
+        }
+
+        direction = direction.normalize();
+        float yaw = -(float)(Math.toDegrees(Math.atan2(direction.x, direction.z)));
+        player.setYRot(yaw);
+        player.setYBodyRot(yaw);
+        player.setYHeadRot(yaw);
+
+        if (target != null){
+            for (ItemStack itemStack : player.getInventory()) {
+                if (itemStack.is(target.asItem())) return;
+            }
+            pause();
+            RawKeyInjector.tapKey(GLFW.GLFW_KEY_CAPS_LOCK);
+            player.displayClientMessage(Component.literal("Not Enough Block: ").append(target.getName()), false);
+
+            if (player.getInventory().contains(ItemStack::isEmpty)){
+                MenuManager.checkMenu(MenuManager.GET_CARPET_FROM_ENDER_CHEST);
+                Config.requiredItems = target.asItem();
+                Objects.requireNonNull(client.getConnection()).sendCommand("myx");
+            }else{
+                player.displayClientMessage(Component.literal("Not Enough Space in Inventory! Process Terminates!"), false);
+                DesktopNotifier.notify("Artist", "Auto Painting Paused: Not Enough Block!");
+            }
+        }
+    }
+
+    public static BotInput getOrInstall(LocalPlayer player) {
+        if (player.input instanceof BotInput existing) {
+            return existing;
+        }
+
+        BotInput botInput = new BotInput();
+        oldInput = player.input;
+        player.input = botInput;
+        return botInput;
+    }
+
+    private static void runUpdate(){
+        try{
+            update();
+        } catch (Exception e) {
+            if (Minecraft.getInstance().player != null)
+                Minecraft.getInstance().player.displayClientMessage(Component.literal("Error During Update"), false);
+        }
+    }
+
+    static {
+        Executors.newScheduledThreadPool(1).scheduleWithFixedDelay(MovementController::runUpdate, 1000, 1000, TimeUnit.MILLISECONDS);
+    }
 }

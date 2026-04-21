@@ -12,7 +12,7 @@ import net.minecraft.world.inventory.ClickType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public record MenuHandler(int id, String name, String menuMatcher, Consumer<AbstractContainerScreen<?>> slotHandler, Runnable opener) {
+public record MenuHandler(int id, String menuMatcher, Consumer<AbstractContainerScreen<?>> slotHandler) {
 
     public static final Logger LOGGER = LoggerFactory.getLogger("Auto Clicker");
 

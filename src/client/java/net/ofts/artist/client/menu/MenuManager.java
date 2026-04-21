@@ -1,78 +1,51 @@
 package net.ofts.artist.client.menu;
 
-import com.mojang.brigadier.suggestion.Suggestions;
-import com.mojang.brigadier.suggestion.SuggestionsBuilder;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
+import net.minecraft.world.entity.player.Inventory;
+import net.minecraft.world.inventory.ClickType;
+import net.minecraft.world.inventory.Slot;
+import net.minecraft.world.item.ItemStack;
 import net.ofts.artist.client.Config;
+import net.ofts.artist.client.DesktopNotifier;
+import net.ofts.artist.client.RawKeyInjector;
+import net.ofts.artist.client.comtroller.MovementController;
+import org.lwjgl.glfw.GLFW;
 
-import java.time.LocalDateTime;
 import java.util.Arrays;
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.Executors;
-import java.util.concurrent.TimeUnit;
 
 public class MenuManager {
-    private static final int GET_CARPET_FROM_ENDER_CHEST = 0;
+    public static final int GET_CARPET_FROM_ENDER_CHEST = 0;
+    public static final int AUDIT_INVENTORY = 1;
 
-    private static final int TYPE_COUNT = 1;
+    private static final int TYPE_COUNT = 2;
 
     private static final MenuHandler[] handlers = new MenuHandler[TYPE_COUNT];
-    private static final Task[] taskQueue = new Task[TYPE_COUNT];
+    private static final boolean[] taskQueue = new boolean[TYPE_COUNT];
     private static final AbstractContainerScreen<?>[] arrivedList = new AbstractContainerScreen<?>[TYPE_COUNT];
+
     public static void clearTaskQueue() {
-        Arrays.fill(taskQueue, null);
+        Arrays.fill(taskQueue, false);
         Arrays.fill(arrivedList, null);
     }
 
     public static void checkMenu(int id){
-        if (taskQueue[id] != null) return;
-        taskQueue[id] = new Task(id);
-        taskQueue[id].open();
+        if (taskQueue[id]) return;
+        taskQueue[id] = true;
     }
 
-    public static boolean checkMenu(String name){
-        for (MenuHandler handler : handlers){
-            if (handler != null && handler.name().equals(name)){
-                checkMenu(handler.id());
-                return true;
-            }
-        }
-        return false;
-    }
-
-    private static void auditTask(){
-        if (Minecraft.getInstance().getCurrentServer() == null) return;
-
-        for (int i = 0; i < TYPE_COUNT; i++) {
-            Task task = taskQueue[i];
-            if (task == null) continue;
-            if (task.time.isAfter(LocalDateTime.now().plusSeconds(1))) {
-                if (task.tried >= Config.RETRY_COUNT) taskQueue[i] = null;
-                else task.open();
-            }
-        }
-    }
-
-    public static synchronized boolean handleMenu(AbstractContainerScreen<?> menu){
+    public static synchronized void handleMenu(AbstractContainerScreen<?> menu){
         for (MenuHandler handler : handlers){
             if (handler == null || !menu.getTitle().getString().contains(handler.menuMatcher())) continue;
 
             int id = handler.id();
-            if (arrivedList[id] != null || taskQueue[id] == null) continue;
+            if (arrivedList[id] != null || !taskQueue[id]) continue;
             arrivedList[id] = menu;
-            taskQueue[id] = null;
+            taskQueue[id] = false;
 
             new Thread(MenuManager::thread).start();
-            return true;
+            return;
         }
-
-        return false;
-    }
-
-    public static CompletableFuture<Suggestions> getSuggestion(SuggestionsBuilder builder){
-        for (MenuHandler handler : handlers) if (handler != null) builder.suggest(handler.name());
-        return builder.buildFuture();
     }
 
     private static int anyArrived(){
@@ -82,48 +55,71 @@ public class MenuManager {
         return -1;
     }
 
+    private static void sleep(){
+        try {
+            Thread.sleep(Config.MENU_WAIT_TIME);
+        } catch (InterruptedException ignored) {}
+    }
+
     private static void thread() {
         int arrivedTask = anyArrived();
 
         AbstractContainerScreen<?> menu = arrivedList[arrivedTask];
         arrivedList[arrivedTask] = null;
 
-        try {
-            Thread.sleep(Config.MENU_WAIT_TIME);
-        } catch (InterruptedException ignored) {}
+        sleep();
 
         handlers[arrivedTask].handleMenu(menu);
 
-        closeMenu(menu);
+        closeMenu();
     }
 
-    private static void closeMenu(AbstractContainerScreen<?> menu){
+    private static void closeMenu(){
         Minecraft client = Minecraft.getInstance();
 
-        client.execute(() -> {
-            client.setScreen(null);
-        });
+        client.execute(() -> client.setScreen(null));
     }
 
-    private static class Task {
-        public int tried;
-        public int id;
-        public LocalDateTime time;
+    private static void getFromEnderChest(AbstractContainerScreen<?> screen){
+        if (Config.requiredItems == null) return;
 
-        public Task(int id) {
-            this.id = id;
-            this.tried = 0;
-            time = LocalDateTime.now();
+        // count remaining
+        assert Minecraft.getInstance().player != null;
+        Inventory inventory = Minecraft.getInstance().player.getInventory();
+        int freeSlots = 0;
+
+        for (ItemStack item : inventory){
+            if (item.isEmpty()) freeSlots++;
         }
 
-        public void open() {
-            handlers[id].opener().run();
+        // ensure not filling all spaces
+        int max = Math.max(3, freeSlots * 3 / 4);
+        int clicked = 0;
+        for (Slot slot : screen.getMenu().slots) {
+            if (slot.getItem().is(Config.requiredItems)){
+                MenuHandler.sendClick(screen.getMenu(), slot.getContainerSlot(), ClickType.QUICK_MOVE);
+                clicked++;
+
+                sleep();
+            }
+
+            if (clicked >= max) break;
+        }
+
+        RawKeyInjector.tapKey(GLFW.GLFW_KEY_CAPS_LOCK);
+
+        if (clicked != 0) MovementController.start();
+        else DesktopNotifier.notify("Artist", "Not Enough Carpet in Ender Chest");
+    }
+
+    private static void auditInventory(AbstractContainerScreen<?> screen){
+        for (Slot slot : screen.getMenu().slots) {
+            MenuHandler.sendClick(screen.getMenu(), slot.getContainerSlot(), ClickType.CLONE);
         }
     }
 
     static {
-        Executors.newScheduledThreadPool(1).scheduleWithFixedDelay(MenuManager::auditTask, 0, Config.MENU_WAIT_TIME, TimeUnit.MILLISECONDS);
-
-
+        handlers[0] = new MenuHandler(GET_CARPET_FROM_ENDER_CHEST, "末影箱", MenuManager::getFromEnderChest);
+        handlers[1] = new MenuHandler(AUDIT_INVENTORY, "Crafting", MenuManager::auditInventory);
     }
 }

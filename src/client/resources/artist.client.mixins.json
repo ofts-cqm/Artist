@@ -1,14 +1,18 @@
 {
   "required": true,
   "minVersion": "0.8",
-  "package": "net.ofts.artist.mixin.client",
+  "package": "net.ofts.artist.client.mixin",
   "compatibilityLevel": "JAVA_21",
   "client": [
+    "KeyboardHandlerAccessor"
   ],
   "injectors": {
     "defaultRequire": 1
   },
   "overwrites": {
     "requireAnnotations": true
-  }
+  },
+  "mixins": [
+    "HandleScreenMixin"
+  ]
 }
