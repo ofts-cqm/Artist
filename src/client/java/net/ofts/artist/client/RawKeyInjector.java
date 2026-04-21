@@ -3,7 +3,6 @@ package net.ofts.artist.client;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.input.KeyEvent;
-import net.minecraft.network.chat.Component;
 import net.ofts.artist.client.mixin.KeyboardHandlerAccessor;
 import org.lwjgl.glfw.GLFW;
 
