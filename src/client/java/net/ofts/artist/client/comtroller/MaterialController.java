@@ -24,6 +24,7 @@ public class MaterialController {
         client = Minecraft.getInstance();
         Config.blockList.clear();
         Config.blockMap.clear();
+        Config.emptyPos.clear();
         new Thread(MaterialController::querySchematic).start();
     }
 
@@ -87,6 +88,7 @@ public class MaterialController {
 
         ListTag palette = paletteOptional.get();
         List<Config.Carpets> mapping = new ArrayList<>(Collections.nCopies(100, null));
+        int gray_mapping = -1;
 
         for (int i = 0; i < palette.size(); i++) {
             String id = palette.getCompoundOrEmpty(i).getStringOr("Name", "");
@@ -100,6 +102,8 @@ public class MaterialController {
                 }
             }
 
+            if (id.equals("minecraft:gray_carpet")) gray_mapping = i;
+
             if (!found && !id.equals("minecraft:gray_carpet")){
                 LOGGER.warn("Block Not Found: {}", id);
             }
@@ -112,23 +116,30 @@ public class MaterialController {
         }
 
         ListTag blocks = blocksOptional.get();
+        int finalGray_mapping = gray_mapping;
         blocks.forEach(tag -> {
             CompoundTag compound = tag.asCompound().orElse(new CompoundTag());
-            int state = compound.getIntOr("state", -1);
-            if (state == -1 || state >= 100 || mapping.get(state) == null) return;
-
             ListTag list = compound.getListOrEmpty("pos");
             if (list.size() != 3) {
                 reportError("pos");
                 return;
             }
 
+            int state = compound.getIntOr("state", -1);
             int x = list.getFirst().asInt().orElse(-1);
             int y = list.get(1).asInt().orElse(-1);
             int z = list.get(2).asInt().orElse(-1);
             if (x == -1 || y == -1 || z == -1) return;
 
             BlockPos pos = new BlockPos(x, y, z).offset(Config.offset);
+
+            if (state == finalGray_mapping){
+                Config.emptyPos.add(pos);
+                return;
+            }
+
+            if (state == -1 || state >= 100 || mapping.get(state) == null) return;
+
             Config.blockMap.put(pos, mapping.get(state).block);
             Config.blockList.computeIfAbsent(mapping.get(state), a -> new HashSet<>()).add(pos);
         });

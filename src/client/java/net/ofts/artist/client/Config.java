@@ -16,6 +16,7 @@ public class Config {
     public static HashMap<Carpets, HashSet<BlockPos>> blockList = new HashMap<>();
     public static HashMap<BlockPos, Block> blockMap = new HashMap<>();
     public static ConcurrentHashMap<BlockPos, Carpets> remaining = new ConcurrentHashMap<>();
+    public static HashSet<BlockPos> emptyPos = new HashSet<>();
     public static HashSet<Carpets> targets = new HashSet<>();
     public static Item requiredItems = null;
 

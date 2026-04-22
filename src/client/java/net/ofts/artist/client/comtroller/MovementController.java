@@ -8,6 +8,8 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.Vec3;
 import net.ofts.artist.client.BotInput;
@@ -45,7 +47,22 @@ public class MovementController {
         player.input = oldInput;
     }
 
-    private static Vec3 direction = new Vec3(0, 0, 0);
+    private static void checkError(BlockPos pos){
+        Vec3 dir2 = new Vec3(pos).subtract(playerPos);
+        // closer error, or first error
+        if (dir2.length() < minDis || cumulativeError == 0){
+            minDis = dir2.length();
+            direction = dir2;
+            target = null;
+        }
+
+        cumulativeError++;
+    }
+
+    private static Vec3 direction = new Vec3(0, 0, 0), playerPos;
+    private static int cumulativeError;
+    private static double minDis;
+    private static Item target;
 
     private static void update(){
         if (!run) return;
@@ -53,23 +70,26 @@ public class MovementController {
         Minecraft client = Minecraft.getInstance();
         LocalPlayer player = client.player;
         assert player != null;
-        Vec3 playerPos = player.position();
-        double minDis = Double.MAX_VALUE;
+        playerPos = player.position();
+        minDis = Double.MAX_VALUE;
         ClientLevel level = client.level;
         assert level != null;
         boolean has = false;
-        Item target = null;
-        int cumulativeError = 0;
+        target = null;
+        cumulativeError = 0;
 
         for (Config.Carpets carpet : Config.targets){
             for (BlockPos pos : Config.blockList.getOrDefault(carpet, new HashSet<>())){
                 BlockState state;
                 try { state = level.getBlockState(pos); } catch (Exception e) { continue; }
 
+                if (state.is(carpet.block)) continue;
+
                 // we require the current is air and the target is carpet.
                 // also, only search if we have no error.
                 // if we have error, solve error first
-                if (state.isAir() && Config.blockMap.containsKey(pos) && cumulativeError == 0){
+                if (state.isAir()){
+                    if (cumulativeError != 0) continue;
                     has = true;
                     Vec3 dir2 = new Vec3(pos).subtract(playerPos);
                     if (dir2.length() < minDis){
@@ -77,24 +97,19 @@ public class MovementController {
                         direction = dir2;
                         target = carpet.block.asItem();
                     }
-                }else if (Config.blockMap.containsKey(pos) && !state.is(Config.blockMap.get(pos))){
-                    Vec3 dir2 = new Vec3(pos).subtract(playerPos);
-                    // closer error, or first error
-                    if (dir2.length() < minDis || cumulativeError == 0){
-                        minDis = dir2.length();
-                        direction = dir2;
-                        target = carpet.block.asItem();
-                    }
-
-                    cumulativeError++;
-                    /*if (cumulativeError > 30){
-                        pause();
-                        player.displayClientMessage(Component.literal("Cumulative Error Exceeds Threshold, Stopping"), false);
-                        DesktopNotifier.notify("Artist", "Auto Painting Paused: Cumulative Error Exceeds Threshold, Stopping");
-                        return;
-                    }*/
+                }else{
+                    has = true;
+                    checkError(pos);
                 }
             }
+        }
+
+        for (BlockPos pos : Config.emptyPos){
+            BlockState state;
+            try { state = level.getBlockState(pos); } catch (Exception e) { continue; }
+
+            if (state.isAir()) continue;
+            checkError(pos);
         }
 
         if (!has) {
