@@ -1,6 +1,7 @@
 package net.ofts.artist.client.menu;
 
 import java.util.function.Consumer;
+import java.util.function.Function;
 
 import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
 import net.minecraft.client.Minecraft;
@@ -12,12 +13,12 @@ import net.minecraft.world.inventory.ClickType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public record MenuHandler(int id, String menuMatcher, Consumer<AbstractContainerScreen<?>> slotHandler) {
+public record MenuHandler(int id, String menuMatcher, Function<AbstractContainerScreen<?>, Boolean> slotHandler) {
 
     public static final Logger LOGGER = LoggerFactory.getLogger("Auto Clicker");
 
-    public void handleMenu(AbstractContainerScreen<?> screen){
-        slotHandler.accept(screen);
+    public boolean handleMenu(AbstractContainerScreen<?> screen){
+        return slotHandler.apply(screen);
     }
 
     public static void sendClick(AbstractContainerMenu menu, int slot, ClickType type){

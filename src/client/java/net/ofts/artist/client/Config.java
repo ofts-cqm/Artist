@@ -10,7 +10,7 @@ import java.util.HashSet;
 import java.util.concurrent.ConcurrentHashMap;
 
 public class Config {
-    public static final int MENU_WAIT_TIME = 500;
+    public static final int MENU_WAIT_TIME = 200;
     public static String schematicName;
     public static BlockPos offset = new BlockPos(-2240, 161, -3137);
     public static HashMap<Carpets, HashSet<BlockPos>> blockList = new HashMap<>();

@@ -15,6 +15,7 @@ public class HandleScreenMixin {
     private void onSetScreen(Screen screen, CallbackInfo ci){
         if (screen instanceof AbstractContainerScreen<?> containerScreen){
             MenuManager.handleMenu(containerScreen);
+            System.out.println("Menu Updated, new Menu: " + containerScreen.getTitle().getString());
         }
     }
 }

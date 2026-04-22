@@ -14,10 +14,8 @@ import net.ofts.artist.client.BotInput;
 import net.ofts.artist.client.Config;
 import net.ofts.artist.client.DesktopNotifier;
 import net.ofts.artist.client.RawKeyInjector;
-import net.ofts.artist.client.menu.MenuManager;
 
 import java.util.HashSet;
-import java.util.Objects;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 
@@ -89,12 +87,12 @@ public class MovementController {
                     }
 
                     cumulativeError++;
-                    if (cumulativeError > 15){
+                    /*if (cumulativeError > 30){
                         pause();
                         player.displayClientMessage(Component.literal("Cumulative Error Exceeds Threshold, Stopping"), false);
                         DesktopNotifier.notify("Artist", "Auto Painting Paused: Cumulative Error Exceeds Threshold, Stopping");
                         return;
-                    }
+                    }*/
                 }
             }
         }
@@ -116,17 +114,7 @@ public class MovementController {
                 if (itemStack.is(target.asItem())) return;
             }
             pause();
-            RawKeyInjector.disablePrinter();
-            player.displayClientMessage(Component.literal("Not Enough Block: ").append(target.getName()), false);
-
-            if (player.getInventory().contains(ItemStack::isEmpty)){
-                MenuManager.checkMenu(MenuManager.GET_CARPET_FROM_ENDER_CHEST);
-                Config.requiredItems = target.asItem();
-                Objects.requireNonNull(client.getConnection()).sendCommand("myx");
-            }else{
-                player.displayClientMessage(Component.literal("Not Enough Space in Inventory! Process Terminates!"), false);
-                DesktopNotifier.notify("Artist", "Auto Painting Paused: Not Enough Block!");
-            }
+            StockController.getCarpet(target);
         }
     }
 
