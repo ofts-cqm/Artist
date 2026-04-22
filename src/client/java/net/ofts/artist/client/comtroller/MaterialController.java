@@ -147,6 +147,7 @@ public class MaterialController {
         client.execute(() ->
                 client.player.displayClientMessage(Component.literal("Loading Succeeded"), false)
         );
+        Config.targets.addAll(Arrays.asList(Config.Carpets.values()));
         //updateState(false);
     }
 }
