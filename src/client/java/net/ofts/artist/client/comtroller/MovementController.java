@@ -125,12 +125,14 @@ public class MovementController {
         target = null;
         cumulativeError = 0;
 
-        List<ItemEntity> entities = level.getEntitiesOfClass(ItemEntity.class, new AABB(playerPos.add(128, 1, 128), playerPos.add(-128, -1, -128)));
+        List<ItemEntity> entities = level.getEntitiesOfClass(
+                ItemEntity.class,
+                new AABB(playerPos.add(128, 1, 128), playerPos.add(-128, -1, -128)),
+                (item) -> item.getItem().is(ItemTags.WOOL_CARPETS));
 
         // entity first, we need to pick up the carpets
         if (!entities.isEmpty()){
-            Stream<ItemEntity> stream = entities.stream().filter(a -> a.getItem().is(ItemTags.WOOL_CARPETS));
-            ItemEntity closest = Collections.min(stream.toList(), (a, b) -> {
+            ItemEntity closest = Collections.min(entities, (a, b) -> {
                 double dis1 = a.position().subtract(playerPos).lengthSqr();
                 double dis2 = b.position().subtract(playerPos).lengthSqr();
 
