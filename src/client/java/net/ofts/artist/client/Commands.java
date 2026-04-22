@@ -15,6 +15,7 @@ import net.minecraft.network.chat.Component;
 import net.ofts.artist.client.comtroller.MaterialController;
 import net.ofts.artist.client.comtroller.MovementController;
 import net.ofts.artist.client.menu.MenuManager;
+import org.lwjgl.glfw.GLFW;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -103,7 +104,7 @@ public class Commands {
         for (String target : targets) {
             if (target.equals("ALL")){
                 Config.targets.addAll(Arrays.asList(Config.Carpets.values()));
-                return 1;
+                break;
             }
 
             try {
@@ -225,9 +226,7 @@ public class Commands {
     private static LiteralArgumentBuilder<FabricClientCommandSource> buildAudit(){
         return LiteralArgumentBuilder.<FabricClientCommandSource>literal("audit")
                 .executes((a) -> {
-                    assert Minecraft.getInstance().player != null;
-                    Minecraft.getInstance().player.sendOpenInventory();
-                    MenuManager.checkMenu(MenuManager.AUDIT_INVENTORY);
+                    RawKeyInjector.enablePrinter();
                     return 1;
                 });
     }

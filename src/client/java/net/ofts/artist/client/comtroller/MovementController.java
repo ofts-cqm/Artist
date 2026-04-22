@@ -15,7 +15,6 @@ import net.ofts.artist.client.Config;
 import net.ofts.artist.client.DesktopNotifier;
 import net.ofts.artist.client.RawKeyInjector;
 import net.ofts.artist.client.menu.MenuManager;
-import org.lwjgl.glfw.GLFW;
 
 import java.util.HashSet;
 import java.util.Objects;
@@ -36,6 +35,7 @@ public class MovementController {
         LocalPlayer player = Minecraft.getInstance().player;
         assert player != null;
         getOrInstall(player).setForward(true);
+        RawKeyInjector.enablePrinter();
         player.displayClientMessage(Component.literal("Start Painting!"), false);
     }
 
@@ -68,7 +68,10 @@ public class MovementController {
                 BlockState state;
                 try { state = level.getBlockState(pos); } catch (Exception e) { continue; }
 
-                if (state.isAir() && Config.blockMap.containsKey(pos)){
+                // we require the current is air and the target is carpet.
+                // also, only search if we have no error.
+                // if we have error, solve error first
+                if (state.isAir() && Config.blockMap.containsKey(pos) && cumulativeError == 0){
                     has = true;
                     Vec3 dir2 = new Vec3(pos).subtract(playerPos);
                     if (dir2.length() < minDis){
@@ -77,8 +80,16 @@ public class MovementController {
                         target = carpet.block.asItem();
                     }
                 }else if (Config.blockMap.containsKey(pos) && !state.is(Config.blockMap.get(pos))){
+                    Vec3 dir2 = new Vec3(pos).subtract(playerPos);
+                    // closer error, or first error
+                    if (dir2.length() < minDis || cumulativeError == 0){
+                        minDis = dir2.length();
+                        direction = dir2;
+                        target = carpet.block.asItem();
+                    }
+
                     cumulativeError++;
-                    if (cumulativeError > 5){
+                    if (cumulativeError > 15){
                         pause();
                         player.displayClientMessage(Component.literal("Cumulative Error Exceeds Threshold, Stopping"), false);
                         DesktopNotifier.notify("Artist", "Auto Painting Paused: Cumulative Error Exceeds Threshold, Stopping");
@@ -90,6 +101,7 @@ public class MovementController {
 
         if (!has) {
             pause();
+            player.displayClientMessage(Component.literal("Task Finished!"), false);
             DesktopNotifier.notify("Artist", "Task Finished!");
         }
 
@@ -104,7 +116,7 @@ public class MovementController {
                 if (itemStack.is(target.asItem())) return;
             }
             pause();
-            RawKeyInjector.tapKey(GLFW.GLFW_KEY_CAPS_LOCK);
+            RawKeyInjector.disablePrinter();
             player.displayClientMessage(Component.literal("Not Enough Block: ").append(target.getName()), false);
 
             if (player.getInventory().contains(ItemStack::isEmpty)){

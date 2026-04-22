@@ -2,6 +2,7 @@ package net.ofts.artist.client.menu;
 
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
+import net.minecraft.client.gui.screens.inventory.ContainerScreen;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.inventory.ClickType;
 import net.minecraft.world.inventory.Slot;
@@ -71,13 +72,13 @@ public class MenuManager {
 
         handlers[arrivedTask].handleMenu(menu);
 
-        closeMenu();
+        closeMenu(menu);
     }
 
-    private static void closeMenu(){
+    private static void closeMenu(AbstractContainerScreen<?> screen){
         Minecraft client = Minecraft.getInstance();
 
-        client.execute(() -> client.setScreen(null));
+        client.execute(screen::onClose);
     }
 
     private static void getFromEnderChest(AbstractContainerScreen<?> screen){
@@ -99,17 +100,19 @@ public class MenuManager {
             if (slot.getItem().is(Config.requiredItems)){
                 MenuHandler.sendClick(screen.getMenu(), slot.getContainerSlot(), ClickType.QUICK_MOVE);
                 clicked++;
-
                 sleep();
+                if (clicked >= max) break;
             }
-
-            if (clicked >= max) break;
         }
 
-        RawKeyInjector.tapKey(GLFW.GLFW_KEY_CAPS_LOCK);
+        if (clicked != 0){
+            RawKeyInjector.enablePrinter();
+            sleep(); // enable printer with a delay
+            MovementController.start();
+            return;
+        }
 
-        if (clicked != 0) MovementController.start();
-        else DesktopNotifier.notify("Artist", "Not Enough Carpet in Ender Chest");
+        DesktopNotifier.notify("Artist", "Not Enough Carpet in Ender Chest, Searching in YCK");
     }
 
     private static void auditInventory(AbstractContainerScreen<?> screen){
