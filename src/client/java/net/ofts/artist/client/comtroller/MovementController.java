@@ -6,20 +6,25 @@ import net.minecraft.client.player.ClientInput;
 import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.chat.Component;
+import net.minecraft.tags.ItemTags;
+import net.minecraft.world.entity.item.ItemEntity;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.level.block.Block;
-import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
 import net.ofts.artist.client.BotInput;
 import net.ofts.artist.client.Config;
 import net.ofts.artist.client.DesktopNotifier;
 import net.ofts.artist.client.RawKeyInjector;
 
+import java.util.Collections;
 import java.util.HashSet;
+import java.util.List;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 public class MovementController {
     private static boolean run = false;
@@ -59,29 +64,16 @@ public class MovementController {
         cumulativeError++;
     }
 
-    private static Vec3 direction = new Vec3(0, 0, 0), playerPos;
-    private static int cumulativeError;
-    private static double minDis;
-    private static Item target;
-
-    private static void update(){
-        if (!run) return;
-
-        Minecraft client = Minecraft.getInstance();
-        LocalPlayer player = client.player;
-        assert player != null;
-        playerPos = player.position();
-        minDis = Double.MAX_VALUE;
-        ClientLevel level = client.level;
-        assert level != null;
+    private static boolean checkBlocks(){
         boolean has = false;
-        target = null;
-        cumulativeError = 0;
+        ClientLevel level = Minecraft.getInstance().level;
+        assert level != null;
 
         for (Config.Carpets carpet : Config.targets){
             for (BlockPos pos : Config.blockList.getOrDefault(carpet, new HashSet<>())){
                 BlockState state;
-                try { state = level.getBlockState(pos); } catch (Exception e) { continue; }
+                try {
+                    state = level.getBlockState(pos); } catch (Exception e) { continue; }
 
                 if (state.is(carpet.block)) continue;
 
@@ -111,6 +103,45 @@ public class MovementController {
             if (state.isAir()) continue;
             checkError(pos);
         }
+
+        return has;
+    }
+
+    private static Vec3 direction = new Vec3(0, 0, 0), playerPos;
+    private static int cumulativeError;
+    private static double minDis;
+    private static Item target;
+
+    private static void update(){
+        if (!run) return;
+
+        Minecraft client = Minecraft.getInstance();
+        LocalPlayer player = client.player;
+        assert player != null;
+        playerPos = player.position();
+        minDis = Double.MAX_VALUE;
+        ClientLevel level = client.level;
+        assert level != null;
+        boolean has;
+        target = null;
+        cumulativeError = 0;
+
+        List<ItemEntity> entities = level.getEntitiesOfClass(ItemEntity.class, new AABB(playerPos.add(128, 1, 128), playerPos.add(-128, -1, -128)));
+
+        // entity first, we need to pick up the carpets
+        if (!entities.isEmpty()){
+            Stream<ItemEntity> stream = entities.stream().filter(a -> a.getItem().is(ItemTags.WOOL_CARPETS));
+            ItemEntity closest = Collections.min(stream.toList(), (a, b) -> {
+                double dis1 = a.position().subtract(playerPos).lengthSqr();
+                double dis2 = b.position().subtract(playerPos).lengthSqr();
+
+                return (int)(dis1 - dis2);
+            });
+
+            direction = closest.position().subtract(playerPos);
+            target = null;
+            has = true;
+        }else has = checkBlocks();
 
         if (!has) {
             pause();
