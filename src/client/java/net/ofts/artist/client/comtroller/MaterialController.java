@@ -1,30 +1,36 @@
 package net.ofts.artist.client.comtroller;
 
 import fi.dy.masa.litematica.data.DataManager;
+import fi.dy.masa.litematica.schematic.LitematicaSchematic;
 import fi.dy.masa.litematica.schematic.placement.SchematicPlacement;
 import fi.dy.masa.litematica.selection.Box;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.Vec3i;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
 import net.minecraft.nbt.NbtAccounter;
 import net.minecraft.nbt.NbtIo;
 import net.minecraft.network.chat.Component;
+import net.minecraft.tags.BlockTags;
+import net.minecraft.world.level.block.Blocks;
+import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
 import net.ofts.artist.client.Config;
+import net.ofts.artist.client.mixin.SchematicAccessor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
-import java.nio.file.Path;
 import java.util.*;
 
 public class MaterialController {
     private static Minecraft client;
     private static final Logger LOGGER = LoggerFactory.getLogger(MaterialController.class);
 
+    @Deprecated
     public static void start(boolean async){
         client = Minecraft.getInstance();
         Config.blockList.clear();
@@ -40,15 +46,15 @@ public class MaterialController {
         assert player != null;
         Vec3 playerPos = player.position();
 
-        Path newPath = allPlacements.stream().filter(placement -> {
+        SchematicPlacement schematic = allPlacements.stream().filter(placement -> {
             Box box = placement.getEclosingBox();
             if (box == null || box.getPos1() == null || box.getPos2() == null) return false;
             return new AABB(new Vec3(box.getPos1()), new Vec3(box.getPos2())).contains(playerPos)
                     && placement.getSchematicFile() != null;
-        }).map(SchematicPlacement::getSchematicFile).findFirst().orElse(null);
+        }).findFirst().orElse(null);
 
-        if (newPath == null) {
-            if (Config.schematicName == null || Config.schematicName.isEmpty()) {
+        if (schematic == null) {
+            if (Config.lastSchematic == null) {
                 player.displayClientMessage(Component.literal("§4Error: Schematic Not Found, Please Load a Schematic via Command or Litematica"), false);
                 return false;
             }
@@ -57,23 +63,12 @@ public class MaterialController {
             return true;
         }
 
-        if (newPath.normalize().toAbsolutePath().equals(Config.schematicPath.normalize().toAbsolutePath())) return true;
-
-        Path schematicsDir = client.gameDirectory.toPath().resolve("schematics");
-        Config.schematicPath = newPath;
-
-        try {
-            Config.schematicName = newPath.relativize(schematicsDir).toString();
-        } catch (IllegalArgumentException e) {
-            Config.schematicName = newPath.getFileName().toString();
-        }
+        if (schematic == Config.lastSchematic) return true;
 
         player.displayClientMessage(Component.literal("§bSchematic Has Changed, Loading new Schematic..."), false);
-        start(false);
+        querySchematic(schematic);
 
-        // It's hard to make start return if its successful, because we need to consider async load.
-        // So we can detect if we loaded it correctly by checking if the block list is empty or not
-        return !Config.blockList.isEmpty();
+        return true;
     }
 
     private static void reportError(String name){
@@ -83,6 +78,43 @@ public class MaterialController {
         throw new RuntimeException("Tag Not Found");
     }
 
+    private static void querySchematic(SchematicPlacement placement){
+        client = Minecraft.getInstance();
+        Config.blockList.clear();
+        Config.emptyPos.clear();
+        LitematicaSchematic schematic = placement.getSchematic();
+
+        ((SchematicAccessor)schematic).getBlockContainers().forEach((key, container) -> {
+            Vec3i size = container.getSize();
+            // this should be the pos relative to the placement...right?
+            BlockPos relativeOffset = schematic.getSubRegionPosition(key);
+            if (relativeOffset == null) return;
+
+            for (int i = 0; i < size.getX(); i++) {
+                for (int j = 0; j < size.getY(); j++) {
+                    for (int k = 0; k < size.getZ(); k++) {
+                        BlockState state = container.get(i, j, k);
+                        BlockPos pos = new BlockPos(i, j, k).offset(relativeOffset).offset(Config.offset);
+
+                        if (!state.is(BlockTags.WOOL_CARPETS)) return;
+                        if (state.is(Blocks.GRAY_CARPET)){
+                            Config.emptyPos.add(pos);
+                            return;
+                        }
+
+                        for (Config.Carpets carpet : Config.Carpets.values()){
+                            if (state.is(carpet.block)){
+                                Config.blockList.computeIfAbsent(carpet, a -> new HashSet<>()).add(pos);
+                                return;
+                            }
+                        }
+                    }
+                }
+            }
+        });
+    }
+
+    @Deprecated
     private static void querySchematic(){
         assert client.player != null;
         client.execute(() ->

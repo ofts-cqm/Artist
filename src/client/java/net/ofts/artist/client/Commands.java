@@ -16,8 +16,6 @@ import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
 import net.ofts.artist.client.comtroller.MaterialController;
 import net.ofts.artist.client.comtroller.MovementController;
-import net.ofts.artist.client.menu.MenuManager;
-import org.lwjgl.glfw.GLFW;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -35,7 +33,7 @@ public class Commands {
 
         builder.executes(a -> sendUsageGuide());
 
-        builder.then(buildLoader());
+        //builder.then(buildLoader());
 
         builder.then(buildQuerier());
 
@@ -65,6 +63,7 @@ public class Commands {
         return 1;
     }
 
+    @Deprecated
     private static int onLoad(CommandContext<FabricClientCommandSource> ctx){
         Config.schematicName = StringArgumentType.getString(ctx, "schematic");
         Path schematicsDir = Minecraft.getInstance().gameDirectory.toPath().resolve("schematics");
@@ -130,7 +129,7 @@ public class Commands {
         LocalPlayer player = Minecraft.getInstance().player;
         assert player != null;
 
-        player.displayClientMessage(Component.literal("Current Loaded Schematic: " + Config.schematicName), false);
+        player.displayClientMessage(Component.literal("Current Loaded Schematic: " + Config.lastSchematic.getName()), false);
         player.displayClientMessage(Component.literal("Current Targets: "), false);
         for (Config.Carpets target : Config.targets) {
             player.displayClientMessage(Component.literal(target.name()), false);
@@ -173,6 +172,7 @@ public class Commands {
         return builder.buildFuture();
     }
 
+    @Deprecated
     private static LiteralArgumentBuilder<FabricClientCommandSource> buildLoader(){
         return LiteralArgumentBuilder.<FabricClientCommandSource>literal("load")
                 .then(RequiredArgumentBuilder.<FabricClientCommandSource, String>argument("schematic", StringArgumentType.greedyString())

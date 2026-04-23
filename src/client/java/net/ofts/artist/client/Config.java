@@ -11,12 +11,14 @@ import net.minecraft.world.phys.Vec3;
 import java.nio.file.Path;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.concurrent.ConcurrentHashMap;
 
 public class Config {
     public static final int MENU_WAIT_TIME = 200;
+    @Deprecated
     public static String schematicName;
+    @Deprecated
     public static Path schematicPath;
+    public static SchematicPlacement lastSchematic;
     public static BlockPos offset = new BlockPos(-2240, 161, -3137);
     public static AABB placementAABB = new AABB(new Vec3(Config.offset.below()), new Vec3(Config.offset.offset(128, 1, 128)));
     public static HashMap<Carpets, HashSet<BlockPos>> blockList = new HashMap<>();
