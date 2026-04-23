@@ -35,35 +35,6 @@ public class MaterialController {
         throw new RuntimeException("Tag Not Found");
     }
 
-    @Deprecated
-    public static boolean updateState(boolean print){
-        ClientLevel level = client.level;
-        if (level == null){
-            LOGGER.error("Failed to Load Level");
-            if (print){
-                assert client.player != null;
-                client.execute(() -> client.player.displayClientMessage(Component.literal("Failed to Load Level"), false));
-            }
-            return false;
-        }
-
-        for (Config.Carpets carpet : Config.targets){
-            LOGGER.debug("Searching for carpet {}", carpet);
-            for (BlockPos pos : Config.blockList.get(carpet)){
-                if (!level.getBlockState(pos).is(carpet.block)){
-                    Config.remaining.put(pos, carpet);
-                }
-            }
-        }
-
-        LOGGER.info("Found {} remaining blocks", Config.remaining.size());
-        if (print){
-            assert client.player != null;
-            client.execute(() -> client.player.displayClientMessage(Component.literal("Found " + Config.remaining.size() + " remaining blocks"), false));
-        }
-        return true;
-    }
-
     private static void querySchematic(){
         assert client.player != null;
         client.execute(() ->
