@@ -11,7 +11,6 @@ import net.minecraft.world.entity.item.ItemEntity;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.state.BlockState;
-import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
 import net.ofts.artist.client.BotInput;
 import net.ofts.artist.client.Config;
@@ -27,6 +26,7 @@ import java.util.concurrent.TimeUnit;
 public class MovementController {
     private static boolean run = false;
     private static ClientInput oldInput = null;
+    private static BotInput botInput;
 
     public static void toggle(){
         if (run) pause();
@@ -34,10 +34,12 @@ public class MovementController {
     }
 
     public static void start(){
+        if (!MaterialController.searchPlacement()) return;
+
         run = true;
         LocalPlayer player = Minecraft.getInstance().player;
         assert player != null;
-        getOrInstall(player).setForward(true);
+        botInput = getOrInstall(player);
         RawKeyInjector.enablePrinter();
         player.displayClientMessage(Component.literal("Start Painting!"), false);
     }
@@ -113,6 +115,7 @@ public class MovementController {
     private static void update(){
         if (!run) return;
 
+        botInput.setForward(true);
         Minecraft client = Minecraft.getInstance();
         LocalPlayer player = client.player;
         assert player != null;
@@ -126,7 +129,7 @@ public class MovementController {
 
         List<ItemEntity> entities = level.getEntitiesOfClass(
                 ItemEntity.class,
-                new AABB(playerPos.add(128, 1, 128), playerPos.add(-128, -1, -128)),
+                Config.placementAABB,
                 (item) -> item.getItem().is(ItemTags.WOOL_CARPETS));
 
         // entity first, we need to pick up the carpets

@@ -1,10 +1,14 @@
 package net.ofts.artist.client;
 
+import fi.dy.masa.litematica.schematic.placement.SchematicPlacement;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
+import net.minecraft.world.phys.AABB;
+import net.minecraft.world.phys.Vec3;
 
+import java.nio.file.Path;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.concurrent.ConcurrentHashMap;
@@ -12,10 +16,11 @@ import java.util.concurrent.ConcurrentHashMap;
 public class Config {
     public static final int MENU_WAIT_TIME = 200;
     public static String schematicName;
+    public static Path schematicPath;
     public static BlockPos offset = new BlockPos(-2240, 161, -3137);
+    public static AABB placementAABB = new AABB(new Vec3(Config.offset.below()), new Vec3(Config.offset.offset(128, 1, 128)));
     public static HashMap<Carpets, HashSet<BlockPos>> blockList = new HashMap<>();
     //public static HashMap<BlockPos, Block> blockMap = new HashMap<>();
-    public static ConcurrentHashMap<BlockPos, Carpets> remaining = new ConcurrentHashMap<>();
     public static HashSet<BlockPos> emptyPos = new HashSet<>();
     public static HashSet<Carpets> targets = new HashSet<>();
     public static Item requiredItems = null;

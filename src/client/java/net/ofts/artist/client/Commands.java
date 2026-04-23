@@ -12,6 +12,8 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.chat.Component;
+import net.minecraft.world.phys.AABB;
+import net.minecraft.world.phys.Vec3;
 import net.ofts.artist.client.comtroller.MaterialController;
 import net.ofts.artist.client.comtroller.MovementController;
 import net.ofts.artist.client.menu.MenuManager;
@@ -65,7 +67,9 @@ public class Commands {
 
     private static int onLoad(CommandContext<FabricClientCommandSource> ctx){
         Config.schematicName = StringArgumentType.getString(ctx, "schematic");
-        MaterialController.start();
+        Path schematicsDir = Minecraft.getInstance().gameDirectory.toPath().resolve("schematics");
+        Config.schematicPath = schematicsDir.resolve(Config.schematicName);
+        MaterialController.start(true);
         return 1;
     }
 
@@ -93,6 +97,7 @@ public class Commands {
     private static int onOffset(CommandContext<FabricClientCommandSource> ctx) {
         BlockPos pos = ctx.getSource().getPlayer().getOnPos();
         Config.offset = pos;
+        Config.placementAABB = new AABB(new Vec3(Config.offset.below()), new Vec3(Config.offset.offset(128, 1, 128)));
         assert Minecraft.getInstance().player != null;
         Minecraft.getInstance().player.displayClientMessage(Component.literal("Offset to " + pos.toShortString() + "!"), false);
         return 1;
