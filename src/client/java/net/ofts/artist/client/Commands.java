@@ -12,8 +12,6 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.chat.Component;
-import net.minecraft.world.phys.AABB;
-import net.minecraft.world.phys.Vec3;
 import net.ofts.artist.client.comtroller.MaterialController;
 import net.ofts.artist.client.comtroller.MovementController;
 
@@ -33,7 +31,7 @@ public class Commands {
 
         builder.executes(a -> sendUsageGuide());
 
-        //builder.then(buildLoader());
+        builder.then(buildLoader());
 
         builder.then(buildQuerier());
 
