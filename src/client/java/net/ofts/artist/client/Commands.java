@@ -93,16 +93,6 @@ public class Commands {
         return found.get() ? 1 : 0;
     }
 
-    @Deprecated
-    private static int onOffset(CommandContext<FabricClientCommandSource> ctx) {
-        BlockPos pos = ctx.getSource().getPlayer().getOnPos();
-        Config.offset = pos;
-        Config.placementAABB = new AABB(new Vec3(Config.offset.below()), new Vec3(Config.offset.offset(128, 1, 128)));
-        assert Minecraft.getInstance().player != null;
-        Minecraft.getInstance().player.displayClientMessage(Component.literal("Offset to " + pos.toShortString() + "!"), false);
-        return 1;
-    }
-
     private static int onTarget(CommandContext<FabricClientCommandSource> ctx){
         String[] targets = StringArgumentType.getString(ctx, "targets").split(" ");
         Config.targets.clear();
@@ -189,12 +179,6 @@ public class Commands {
     private static LiteralArgumentBuilder<FabricClientCommandSource> buildQuerier(){
         return LiteralArgumentBuilder.<FabricClientCommandSource>literal("query")
                 .executes(Commands::onQuery);
-    }
-
-    @Deprecated
-    private static LiteralArgumentBuilder<FabricClientCommandSource> buildOffset(){
-        return LiteralArgumentBuilder.<FabricClientCommandSource>literal("offset")
-                .executes(Commands::onOffset);
     }
 
     private static LiteralArgumentBuilder<FabricClientCommandSource> buildTargeter(){

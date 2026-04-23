@@ -131,7 +131,7 @@ public class MaterialController {
     private static void querySchematic(){
         assert client.player != null;
         client.execute(() ->
-            client.player.displayClientMessage(Component.literal("§6Loading Schematics " + Config.schematicName), false)
+            client.player.displayClientMessage(Component.literal("§6Loading Schematics " + Config.schematicPath.getFileName().toString()), false)
         );
         CompoundTag root;
 
@@ -139,7 +139,7 @@ public class MaterialController {
             root = NbtIo.readCompressed(Config.schematicPath, NbtAccounter.unlimitedHeap());
         } catch (IOException e) {
             LOGGER.error("Cannot resolve schematic file: {}", e.getMessage());
-            client.player.displayClientMessage(Component.literal("§4Cannot resolve schematic file: " + Config.schematicName), false);
+            client.player.displayClientMessage(Component.literal("§4Cannot resolve schematic file: " + Config.schematicPath.getFileName().toString()), false);
             return;
         }
 
@@ -194,7 +194,7 @@ public class MaterialController {
             int z = list.get(2).asInt().orElse(-1);
             if (x == -1 || y == -1 || z == -1) return;
 
-            BlockPos pos = new BlockPos(x, y, z).offset(Config.offset);
+            BlockPos pos = new BlockPos(x, y, z)/*.offset(Config.offset)*/;
 
             if (state == finalGray_mapping){
                 Config.emptyPos.add(pos);

@@ -6,7 +6,6 @@ import net.minecraft.world.item.Item;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.phys.AABB;
-import net.minecraft.world.phys.Vec3;
 
 import java.nio.file.Path;
 import java.util.HashMap;
@@ -15,15 +14,10 @@ import java.util.HashSet;
 public class Config {
     public static final int MENU_WAIT_TIME = 200;
     @Deprecated
-    public static String schematicName;
-    @Deprecated
     public static Path schematicPath;
     public static SchematicPlacement lastSchematic;
-    @Deprecated
-    public static BlockPos offset = new BlockPos(-2240, 161, -3137);
     public static AABB placementAABB = new AABB(0, 0, 0, 0, 0, 0);
     public static HashMap<Carpets, HashSet<BlockPos>> blockList = new HashMap<>();
-    //public static HashMap<BlockPos, Block> blockMap = new HashMap<>();
     public static HashSet<BlockPos> emptyPos = new HashSet<>();
     public static HashSet<Carpets> targets = new HashSet<>();
     public static Item requiredItems = null;
