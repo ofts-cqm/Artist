@@ -19,8 +19,9 @@ public class Config {
     @Deprecated
     public static Path schematicPath;
     public static SchematicPlacement lastSchematic;
+    @Deprecated
     public static BlockPos offset = new BlockPos(-2240, 161, -3137);
-    public static AABB placementAABB = new AABB(new Vec3(Config.offset.below()), new Vec3(Config.offset.offset(128, 1, 128)));
+    public static AABB placementAABB = new AABB(0, 0, 0, 0, 0, 0);
     public static HashMap<Carpets, HashSet<BlockPos>> blockList = new HashMap<>();
     //public static HashMap<BlockPos, Block> blockMap = new HashMap<>();
     public static HashSet<BlockPos> emptyPos = new HashSet<>();

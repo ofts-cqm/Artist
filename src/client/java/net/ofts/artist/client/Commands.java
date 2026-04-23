@@ -43,7 +43,7 @@ public class Commands {
 
         builder.then(buildStop());
 
-        builder.then(buildOffset());
+        //builder.then(buildOffset());
 
         builder.then(buildState());
 
@@ -93,6 +93,7 @@ public class Commands {
         return found.get() ? 1 : 0;
     }
 
+    @Deprecated
     private static int onOffset(CommandContext<FabricClientCommandSource> ctx) {
         BlockPos pos = ctx.getSource().getPlayer().getOnPos();
         Config.offset = pos;
@@ -190,6 +191,7 @@ public class Commands {
                 .executes(Commands::onQuery);
     }
 
+    @Deprecated
     private static LiteralArgumentBuilder<FabricClientCommandSource> buildOffset(){
         return LiteralArgumentBuilder.<FabricClientCommandSource>literal("offset")
                 .executes(Commands::onOffset);

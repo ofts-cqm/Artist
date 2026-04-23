@@ -3,6 +3,7 @@ package net.ofts.artist.client.comtroller;
 import fi.dy.masa.litematica.data.DataManager;
 import fi.dy.masa.litematica.schematic.LitematicaSchematic;
 import fi.dy.masa.litematica.schematic.placement.SchematicPlacement;
+import fi.dy.masa.litematica.schematic.placement.SubRegionPlacement;
 import fi.dy.masa.litematica.selection.Box;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.player.LocalPlayer;
@@ -47,10 +48,13 @@ public class MaterialController {
         Vec3 playerPos = player.position();
 
         SchematicPlacement schematic = allPlacements.stream().filter(placement -> {
-            Box box = placement.getEclosingBox();
-            if (box == null || box.getPos1() == null || box.getPos2() == null) return false;
-            return new AABB(new Vec3(box.getPos1()), new Vec3(box.getPos2())).contains(playerPos)
-                    && placement.getSchematicFile() != null;
+            // remember: box is the absolute pos, not relative
+            for (Box box : placement.getSubRegionBoxes(SubRegionPlacement.RequiredEnabled.ANY).values()) {
+                if (box.getPos1() == null || box.getPos2() == null) continue;
+                AABB vanillaBox = new AABB(new Vec3(box.getPos1()), new Vec3(box.getPos2())).inflate(1);
+                if (vanillaBox.contains(playerPos)) return true;
+            }
+            return false;
         }).findFirst().orElse(null);
 
         if (schematic == null) {
@@ -83,35 +87,44 @@ public class MaterialController {
         Config.blockList.clear();
         Config.emptyPos.clear();
         LitematicaSchematic schematic = placement.getSchematic();
+        BlockPos placementPosition = placement.getOrigin();
 
         ((SchematicAccessor)schematic).getBlockContainers().forEach((key, container) -> {
             Vec3i size = container.getSize();
-            // this should be the pos relative to the placement...right?
-            BlockPos relativeOffset = schematic.getSubRegionPosition(key);
-            if (relativeOffset == null) return;
+            // this is the relative position, relative to the placement
+            BlockPos position = schematic.getSubRegionPosition(key);
+            if (position == null) return;
+            position = position.offset(placementPosition);// now its absolute
 
+            Config.placementAABB = new AABB(new Vec3(position), new Vec3(position.offset(size)));
             for (int i = 0; i < size.getX(); i++) {
                 for (int j = 0; j < size.getY(); j++) {
                     for (int k = 0; k < size.getZ(); k++) {
                         BlockState state = container.get(i, j, k);
-                        BlockPos pos = new BlockPos(i, j, k).offset(relativeOffset).offset(Config.offset);
+                        BlockPos pos = new BlockPos(i, j, k).offset(position);
 
-                        if (!state.is(BlockTags.WOOL_CARPETS)) return;
+                        if (!state.is(BlockTags.WOOL_CARPETS)) continue;
                         if (state.is(Blocks.GRAY_CARPET)){
                             Config.emptyPos.add(pos);
-                            return;
+                            continue;
                         }
 
                         for (Config.Carpets carpet : Config.Carpets.values()){
                             if (state.is(carpet.block)){
                                 Config.blockList.computeIfAbsent(carpet, a -> new HashSet<>()).add(pos);
-                                return;
+                                break;
                             }
                         }
                     }
                 }
             }
         });
+
+        assert client.player != null;
+        client.execute(() ->
+                client.player.displayClientMessage(Component.literal("Loading Succeeded"), false)
+        );
+        Config.targets.addAll(Arrays.asList(Config.Carpets.values()));
     }
 
     @Deprecated

@@ -150,7 +150,7 @@ public class MovementController {
 
         if (!has) {
             pause();
-            player.displayClientMessage(Component.literal("Task Finished!"), false);
+            client.execute(() -> player.displayClientMessage(Component.literal("Task Finished!"), false));
             DesktopNotifier.notify("Artist", "Task Finished!");
         }
 
