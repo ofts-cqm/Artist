@@ -50,19 +50,19 @@ public class MovementController {
         player.input = oldInput;
     }
 
-    private static void checkError(BlockPos pos){
+    private static void checkError(BlockPos pos, boolean updateDirection){
         Vec3 dir2 = new Vec3(pos).subtract(playerPos);
         // closer error, or first error
         if (dir2.length() < minDis || cumulativeError == 0){
             minDis = dir2.length();
-            direction = dir2;
+            if(updateDirection) direction = dir2;
             target = null;
         }
 
         cumulativeError++;
     }
 
-    private static boolean checkBlocks(){
+    private static boolean checkBlocks(boolean updateDirection){
         boolean has = false;
         ClientLevel level = Minecraft.getInstance().level;
         assert level != null;
@@ -84,12 +84,12 @@ public class MovementController {
                     Vec3 dir2 = new Vec3(pos).subtract(playerPos);
                     if (dir2.length() < minDis){
                         minDis = dir2.length();
-                        direction = dir2;
+                        if (updateDirection) direction = dir2;
                         target = carpet.block.asItem();
                     }
                 }else{
                     has = true;
-                    checkError(pos);
+                    checkError(pos, updateDirection);
                 }
             }
         }
@@ -99,7 +99,7 @@ public class MovementController {
             try { state = level.getBlockState(pos); } catch (Exception e) { continue; }
 
             if (state.isAir()) continue;
-            checkError(pos);
+            checkError(pos, updateDirection);
         }
 
         return has;
@@ -120,7 +120,7 @@ public class MovementController {
         minDis = Double.MAX_VALUE;
         ClientLevel level = client.level;
         assert level != null;
-        boolean has;
+        boolean has = false;
         target = null;
         cumulativeError = 0;
 
@@ -141,7 +141,9 @@ public class MovementController {
             direction = closest.position().subtract(playerPos);
             target = null;
             has = true;
-        }else has = checkBlocks();
+        }
+
+        has |= checkBlocks(entities.isEmpty());
 
         if (!has) {
             pause();

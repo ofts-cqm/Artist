@@ -14,7 +14,7 @@ public class Config {
     public static String schematicName;
     public static BlockPos offset = new BlockPos(-2240, 161, -3137);
     public static HashMap<Carpets, HashSet<BlockPos>> blockList = new HashMap<>();
-    public static HashMap<BlockPos, Block> blockMap = new HashMap<>();
+    //public static HashMap<BlockPos, Block> blockMap = new HashMap<>();
     public static ConcurrentHashMap<BlockPos, Carpets> remaining = new ConcurrentHashMap<>();
     public static HashSet<BlockPos> emptyPos = new HashSet<>();
     public static HashSet<Carpets> targets = new HashSet<>();

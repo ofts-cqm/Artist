@@ -23,7 +23,7 @@ public class MaterialController {
     public static void start(){
         client = Minecraft.getInstance();
         Config.blockList.clear();
-        Config.blockMap.clear();
+        //Config.blockMap.clear();
         Config.emptyPos.clear();
         new Thread(MaterialController::querySchematic).start();
     }
@@ -140,7 +140,7 @@ public class MaterialController {
 
             if (state == -1 || state >= 100 || mapping.get(state) == null) return;
 
-            Config.blockMap.put(pos, mapping.get(state).block);
+            //Config.blockMap.put(pos, mapping.get(state).block);
             Config.blockList.computeIfAbsent(mapping.get(state), a -> new HashSet<>()).add(pos);
         });
 
