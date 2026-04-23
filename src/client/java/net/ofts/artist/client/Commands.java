@@ -65,9 +65,9 @@ public class Commands {
 
     @Deprecated
     private static int onLoad(CommandContext<FabricClientCommandSource> ctx){
-        Config.schematicName = StringArgumentType.getString(ctx, "schematic");
+        String name = StringArgumentType.getString(ctx, "schematic");
         Path schematicsDir = Minecraft.getInstance().gameDirectory.toPath().resolve("schematics");
-        Config.schematicPath = schematicsDir.resolve(Config.schematicName);
+        Config.schematicPath = schematicsDir.resolve(name);
         MaterialController.start(true);
         return 1;
     }
