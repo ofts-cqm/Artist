@@ -24,33 +24,53 @@ website and paste the generated schematics in the server. This mod automates the
 by creating a bot that automatically place carpets,
 so the player can be freed from this repetitive task and spend their time on more valuable things. 
 
+After placing a schematic down (using Litematica) and storing all materials in 
+inventory, Ender chest, or cloud storage, you can `Y` to toggle the bot.
+The bot will then automatically build your pixel art, automatically break any wrong
+blocks, automatically pick-up any carpets, and automatically replenish supplies. 
+
+
 ## Note:
-- This mod only direct movements and automatically replenish stocks. 
-It **DOES NOT** automatically place carpet. Recommended to use along Litematica Printer. 
 - This mod is a **15-Color** painting bot, meaning it does not support **Gray**
-- This mod is not **Fully Automatic!** Because this mod is still in development, various bugs may occur.
-My personal recommendation is to check the status about every 5 minutes. 
+- This mod is **In Development**, and various bugs may occur.
 
 # How to use:
 
-You first need a working `.nbt` file. Currently, only `.nbt` format is supported. 
-`.litematic` from Litematica will not work and `.schem` from WE are not tested. 
+1. Place a schematic down via Litematica. 
+2. Load all required materials in inventory, Ender Chest, or cloud storage
+3. Press `Y` **INSIDE** your schematic placement to load and start
 
-Load the `.nbt` file on your Litematica as usual, then use commands to load the schematic file to this mod. 
-This mod does **NOT** automatically sync schematics from Litematica. 
+Yes, that is the entire process. 
+Note that you should press `Y` inside your placement. If you start the bot
+outside any placement, the bot will use the last placement, and if the bot cannot find
+the last placement, it will stop. 
+
+
+This bot is fully automatic and does not require 
+human oversight during the building process. However, because
+this mod is still in development, my personal recommendation is to check its state
+every 10 min. 
 
 ## Commands:
 
-- `/artist load <schematic>`
+Commands serves for additional debugging features. You do not need those command to get this bot working. 
+
+- `/artist load [schematic]`
   - Load the schematic
-- `/artist offset`
-  - Set the block on your feet to the schematic position. 
-  - Note that this command should be run before running `/artist load`
+  - If no argument is provided, load the currently schematic
+    placement that the player is currently standing on. 
+  - **NOTE: This command (the one with argument) is now deprecated!**
+    Schematics now will be automatically loaded, 
+    according to the schematic placement you are currently in
 - `/artist query`
   - Query the block on your feet. 
   - This is a debug command that is used to check if you placed your schematics correctly. 
+  - Historically, schematics of this mod needs to be manually separately loaded.
+    Therefore, I added this command to check if manual loading is correct. 
+    However, since the entire loading process is now automated, there is no need to check again. 
 - `/artist target <targets>`
   - This command accepts an array of color and set them to the target blocks. 
+  - When new schematic is loaded, the target will automatically set to ALL
   - The acceptable values are (case-sensitive):
     - WHITE
     - LIGHT_GRAY
@@ -76,24 +96,9 @@ This mod does **NOT** automatically sync schematics from Litematica.
 - `/artist start` and `/artist stop`:
   - Start and Stop Painting. This can be replaced by the keybind `Y`, which **Toggles** painting. 
 - `/artist audit`
-  - WIP
+  - This command has been deleted. 
 
-# Functions:
-- When painting, automatically gose to the closest empty block to place. 
-- When the player's inventory is out of stock, automatically replenish stock from ender chest via command '/myx'. 
-  - Note that this is my server's command to open player's ender chest. Therefore, it probably will not work on your server. 
-  - I plant to add this command as a config, but WIP. 
-  - When replenishing stocks, automatically disable litematica printer by simulating a keyboard caplock input. 
-    - Although this sometimes causes bugs, because it fails to re-enable the printer. 
-- Automatically stop when there is more than 5 carpet mismatch (for safety)
-- Automatically stop when not enough carpets are provided
-- When the painter stopped and minecraft is not on focus, automatically emit a pop-up window to inform the user
-  - I tested this on my *ArchLinux+Hyprland* system, and it works. I haven't tested it on Windows nor macOS
-
-# Known Bugs:
-- Sometimes the painter fails to re-enable litematica printer
-- Sometimes the painter creates a ghost-hotbar, meaning an out-of-sync hotbar. 
-  - This might be caused by my 300ms+ latency and 16% package lost rate, tho. 
+# At The End
 
 Because this is mod is still rapidly developing, and it is mainly intended for personal use, I will not create any releases. 
 You can build this mod using Gradle if you are interested. 
