@@ -2,6 +2,7 @@ package net.ofts.artist.client;
 
 import com.mojang.brigadier.CommandDispatcher;
 import com.mojang.brigadier.arguments.StringArgumentType;
+import com.mojang.brigadier.builder.ArgumentBuilder;
 import com.mojang.brigadier.builder.LiteralArgumentBuilder;
 import com.mojang.brigadier.builder.RequiredArgumentBuilder;
 import com.mojang.brigadier.context.CommandContext;
@@ -61,9 +62,16 @@ public class Commands {
         return 1;
     }
 
-    @Deprecated
     private static int onLoad(CommandContext<FabricClientCommandSource> ctx){
-        String name = StringArgumentType.getString(ctx, "schematic");
+        String name;
+        try {
+            name = StringArgumentType.getString(ctx, "schematic");
+        }catch (IllegalArgumentException e){
+            MaterialController.searchPlacement();
+            return 1;
+        }
+        assert Minecraft.getInstance().player != null;
+        Minecraft.getInstance().player.displayClientMessage(Component.literal("Note: you are using a deprecated command!"), false);
         Path schematicsDir = Minecraft.getInstance().gameDirectory.toPath().resolve("schematics");
         Config.schematicPath = schematicsDir.resolve(name);
         MaterialController.start(true);
@@ -85,7 +93,7 @@ public class Commands {
         if (!found.get()){
             Minecraft.getInstance().execute(() -> {
                 assert Minecraft.getInstance().player != null;
-                Minecraft.getInstance().player.displayClientMessage(Component.literal("Data Not Found"), false);
+                Minecraft.getInstance().player.displayClientMessage(Component.literal("Data Not Found at Position " + pos.toShortString()), false);
             });
         }
         return found.get() ? 1 : 0;
