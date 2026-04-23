@@ -16,6 +16,7 @@ import net.ofts.artist.client.RawKeyInjector;
 import net.ofts.artist.client.menu.MenuHandler;
 import net.ofts.artist.client.menu.MenuManager;
 
+import java.util.HashSet;
 import java.util.Objects;
 
 public class StockController {
@@ -103,9 +104,12 @@ public class StockController {
         assert Minecraft.getInstance().player != null;
         Inventory inventory = Minecraft.getInstance().player.getInventory();
         int freeSlots = 0;
+        HashSet<Item> occurred = new HashSet<>();
 
-        for (ItemStack item : inventory){
+        for (int i = 0; i < 36; i++){
+            ItemStack item = inventory.getItem(i);
             if (item.isEmpty()) freeSlots++;
+            occurred.add(item.getItem());
         }
 
         if (freeSlots == 0){
@@ -116,8 +120,11 @@ public class StockController {
             return true;
         }
 
+        int reserved = Math.max(0, Config.blockList.size() - occurred.size());
+
         // ensure not filling all spaces
-        int max = Math.max(3, freeSlots * 3 / 4);
+        int max = Math.max(1, freeSlots / 2);
+        max = Math.min(max, Math.max(0, freeSlots - reserved));
         int clicked = 0;
         for (Slot slot : screen.getMenu().slots) {
             if (slot.getItem().is(Config.requiredItems)){
