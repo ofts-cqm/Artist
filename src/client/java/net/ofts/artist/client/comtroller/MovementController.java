@@ -134,12 +134,7 @@ public class MovementController {
 
         // entity first, we need to pick up the carpets
         if (!entities.isEmpty()){
-            ItemEntity closest = Collections.min(entities, (a, b) -> {
-                double dis1 = a.position().subtract(playerPos).lengthSqr();
-                double dis2 = b.position().subtract(playerPos).lengthSqr();
-
-                return (int)(dis1 - dis2);
-            });
+            ItemEntity closest = Collections.min(entities, (a, b) -> b.getAge() - a.getAge());
 
             direction = closest.position().subtract(playerPos);
             target = null;
