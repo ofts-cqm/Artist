@@ -173,15 +173,7 @@ public class Commands {
 
     @Deprecated
     private static LiteralArgumentBuilder<FabricClientCommandSource> buildLoader(){
-        return LiteralArgumentBuilder.<FabricClientCommandSource>literal("load")
-                .then(RequiredArgumentBuilder.<FabricClientCommandSource, String>argument("schematic", StringArgumentType.greedyString())
-                        .executes(Commands::onLoad)
-                        .suggests(Commands::suggestSchematics)
-                )
-                .executes(a -> {
-                    sendMessage("§eUsage: /artist load [schematic]");
-                    return 1;
-                });
+        return LiteralArgumentBuilder.<FabricClientCommandSource>literal("load").executes(Commands::onLoad);
     }
 
     private static LiteralArgumentBuilder<FabricClientCommandSource> buildCollector(){
