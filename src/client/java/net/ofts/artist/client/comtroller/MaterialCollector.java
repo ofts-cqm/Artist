@@ -99,8 +99,10 @@ public class MaterialCollector {
             assert Minecraft.getInstance().player != null;
             Config.requiredCount = InventoryUtils.countSlotOf(Minecraft.getInstance().player.getInventory(), currentCarpet);
             Config.reversed = true;
-            MenuManager.checkMenu(MenuManager.GET_CARPET_FROM_ENDER_CHEST);
-            Objects.requireNonNull(Minecraft.getInstance().getConnection()).sendCommand("myx");
+            new Thread(() -> {
+                MenuManager.checkMenu(MenuManager.GET_CARPET_FROM_ENDER_CHEST);
+                Objects.requireNonNull(Minecraft.getInstance().getConnection()).sendCommand("myx");
+            }).start();
         }else{
             chestIndex++;
             if (chestIndex == chests.get(currentCarpet).size()){
