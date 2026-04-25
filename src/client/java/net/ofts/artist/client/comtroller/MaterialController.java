@@ -84,6 +84,7 @@ public class MaterialController {
 
     private static void querySchematic(SchematicPlacement placement){
         client = Minecraft.getInstance();
+        Config.lastSchematic = placement;
         Config.blockList.clear();
         Config.emptyPos.clear();
         LitematicaSchematic schematic = placement.getSchematic();

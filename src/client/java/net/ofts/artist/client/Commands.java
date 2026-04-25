@@ -12,6 +12,7 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.chat.Component;
+import net.ofts.artist.client.comtroller.MaterialCollector;
 import net.ofts.artist.client.comtroller.MaterialController;
 import net.ofts.artist.client.comtroller.MovementController;
 
@@ -32,6 +33,8 @@ public class Commands {
         builder.executes(a -> sendUsageGuide());
 
         builder.then(buildLoader());
+
+        builder.then(buildCollector());
 
         builder.then(buildQuerier());
 
@@ -125,7 +128,7 @@ public class Commands {
         LocalPlayer player = Minecraft.getInstance().player;
         assert player != null;
 
-        player.displayClientMessage(Component.literal("Current Loaded Schematic: " + Config.lastSchematic.getName()), false);
+        player.displayClientMessage(Component.literal("Current Loaded Schematic: " + (Config.lastSchematic == null ? "NOT LOADED" : Config.lastSchematic.getName())), false);
         player.displayClientMessage(Component.literal("Current Targets: "), false);
         for (Config.Carpets target : Config.targets) {
             player.displayClientMessage(Component.literal(target.name()), false);
@@ -176,7 +179,19 @@ public class Commands {
                         .suggests(Commands::suggestSchematics)
                 )
                 .executes(a -> {
-                    sendMessage("§eUsage: /artist load <schematic>");
+                    sendMessage("§eUsage: /artist load [schematic]");
+                    return 1;
+                });
+    }
+
+    private static LiteralArgumentBuilder<FabricClientCommandSource> buildCollector(){
+        return LiteralArgumentBuilder.<FabricClientCommandSource>literal("collect")
+                .executes(a -> {
+                    if (Config.lastSchematic == null){
+                        sendMessage("§4Schematic Not Loaded");
+                        return 0;
+                    }
+                    MaterialCollector.collectMaterial(Config.lastSchematic.getSchematic());
                     return 1;
                 });
     }

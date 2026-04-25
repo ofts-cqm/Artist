@@ -21,6 +21,8 @@ public class Config {
     public static HashSet<BlockPos> emptyPos = new HashSet<>();
     public static HashSet<Carpets> targets = new HashSet<>();
     public static Item requiredItems = null;
+    public static int requiredCount;
+    public static boolean reversed;
 
     public enum Carpets {
         WHITE("minecraft:white_carpet", Blocks.WHITE_CARPET),

@@ -4,9 +4,7 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
 import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.network.chat.Component;
-import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.inventory.ClickType;
-import net.minecraft.world.inventory.Slot;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
@@ -16,7 +14,6 @@ import net.ofts.artist.client.RawKeyInjector;
 import net.ofts.artist.client.menu.MenuHandler;
 import net.ofts.artist.client.menu.MenuManager;
 
-import java.util.HashSet;
 import java.util.Objects;
 
 public class StockController {
@@ -28,8 +25,11 @@ public class StockController {
         player.displayClientMessage(Component.literal("Not Enough Block: ").append(target.getName()), false);
 
         if (player.getInventory().contains(ItemStack::isEmpty)){
-            MenuManager.checkMenu(MenuManager.GET_CARPET_FROM_ENDER_CHEST);
             Config.requiredItems = target.asItem();
+            Config.requiredCount = getRequiredCount();
+            Config.reversed = false;
+            if (Config.requiredCount == 0) return;
+            MenuManager.checkMenu(MenuManager.GET_CARPET_FROM_ENDER_CHEST);
             Objects.requireNonNull(Minecraft.getInstance().getConnection()).sendCommand("myx");
         }else{
             player.displayClientMessage(Component.literal("Not Enough Space in Inventory! Process Terminates!"), false);
@@ -44,11 +44,12 @@ public class StockController {
     }
 
     public static boolean checkEnderChest(AbstractContainerScreen<?> screen){
-        if (getFromEnderChest(screen)) return true;
+        if (putOrGetFromChest(screen)) return true;
 
+        String target = Config.reversed ? "Space" : "Carpet";
         assert Minecraft.getInstance().player != null;
-        Minecraft.getInstance().player.displayClientMessage(Component.literal("Not Enough Carpet in Ender Chest, Searching in YCK"), false);
-        DesktopNotifier.notify("Artist", "Not Enough Carpet in Ender Chest, Searching in YCK");
+        Minecraft.getInstance().player.displayClientMessage(Component.literal("Not Enough " + target + " in Ender Chest, Searching in YCK"), false);
+        DesktopNotifier.notify("Artist", "Not Enough " + target + " in Ender Chest, Searching in YCK");
 
         new Thread(() -> {
             sleep();
@@ -77,13 +78,14 @@ public class StockController {
     }
 
     public static boolean checkYCK(AbstractContainerScreen<?> screen){
-        if (getFromEnderChest(screen)) return true;
+        if (putOrGetFromChest(screen)) return true;
         if (nextPage(screen)) return false;
 
+        String target = Config.reversed ? "Space" : "Carpet";
         if (shared) {
             assert Minecraft.getInstance().player != null;
-            Minecraft.getInstance().player.displayClientMessage(Component.literal("Not Enough Item in YCK, Stopping"), false);
-            DesktopNotifier.notify("Artist", "Not Enough Carpet in YCK, Stopping");
+            Minecraft.getInstance().player.displayClientMessage(Component.literal("Not Enough " + target + " in YCK, Stopping"), false);
+            DesktopNotifier.notify("Artist", "Not Enough " + target + " in YCK, Stopping");
             shared = false;
         }else {
             new Thread(() -> {
@@ -97,45 +99,57 @@ public class StockController {
         return true;
     }
 
-    private static boolean getFromEnderChest(AbstractContainerScreen<?> screen){
-        if (Config.requiredItems == null) return true;
-
+    private static int getRequiredCount(){
         // count remaining
-        assert Minecraft.getInstance().player != null;
-        Inventory inventory = Minecraft.getInstance().player.getInventory();
-        int freeSlots = 0;
-        HashSet<Item> occurred = new HashSet<>();
-
-        for (int i = 0; i < 36; i++){
-            ItemStack item = inventory.getItem(i);
-            if (item.isEmpty()) freeSlots++;
-            occurred.add(item.getItem());
-        }
+        int freeSlots = InventoryUtils.countFreeSlots();
+        int typeCount = InventoryUtils.countType();
 
         if (freeSlots == 0){
             assert Minecraft.getInstance().player != null;
             Minecraft.getInstance().player.displayClientMessage(Component.literal("No Free Slot in Inventory"), false);
             DesktopNotifier.notify("Artist", "No Free Slot in Inventory");
             shared = false;
-            return true;
+            return 0;
         }
 
-        int reserved = Math.max(0, Config.blockList.size() - occurred.size());
+        int reserved = Math.max(0, Config.blockList.size() - typeCount);
 
         // ensure not filling all spaces
         int max = Math.max(1, freeSlots / 2);
-        max = Math.min(max, Math.max(0, freeSlots - reserved));
-        int clicked = 0;
-        for (Slot slot : screen.getMenu().slots) {
-            if (slot.getItem().is(Config.requiredItems)){
-                MenuHandler.sendClick(screen.getMenu(), slot.getContainerSlot(), ClickType.QUICK_MOVE);
-                clicked++;
+        max = Math.min(max, Math.max(1, freeSlots - reserved));
+        return max;
+    }
+
+    private static boolean putOrGetFromChest(AbstractContainerScreen<?> screen){
+        if (Config.reversed) return putToChest(screen);
+        else return getFromEnderChest(screen);
+    }
+
+    private static boolean putToChest(AbstractContainerScreen<?> screen){
+        LocalPlayer player = Minecraft.getInstance().player;
+        assert player != null;
+        Config.requiredCount -= InventoryUtils.getFromChest(screen, Config.requiredItems, Config.requiredCount, 54, 90, screen.getMenu().slots.getFirst().container);
+
+        if (Config.requiredCount == 0){
+            shared = false;
+            new Thread(() -> {
                 sleep();
-                if (clicked >= max) break;
-            }
+                MaterialCollector.nextChest();
+            }).start();
+            return true;
         }
 
-        if (clicked != 0){
+        return false;
+    }
+
+    private static boolean getFromEnderChest(AbstractContainerScreen<?> screen){
+        if (Config.requiredItems == null) return true;
+
+        LocalPlayer player = Minecraft.getInstance().player;
+        assert player != null;
+        player.displayClientMessage(Component.literal("Plan to pick up " + Config.requiredCount + " carpets."), false);
+
+        if (InventoryUtils.getFromChest(screen, Config.requiredItems, Config.requiredCount, 0, 54, player.getInventory()) != 0){
             MovementController.start();
             shared = false;
             new Thread(() -> {
