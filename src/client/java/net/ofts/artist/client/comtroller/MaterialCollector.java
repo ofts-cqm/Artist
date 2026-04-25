@@ -100,9 +100,11 @@ public class MaterialCollector {
             Config.requiredCount = InventoryUtils.countSlotOf(Minecraft.getInstance().player.getInventory(), currentCarpet);
             Config.reversed = true;
             new Thread(() -> {
+                InventoryUtils.sleep();
                 MenuManager.checkMenu(MenuManager.GET_CARPET_FROM_ENDER_CHEST);
                 Objects.requireNonNull(Minecraft.getInstance().getConnection()).sendCommand("myx");
             }).start();
+            return true;
         }else{
             chestIndex++;
             if (chestIndex == chests.get(currentCarpet).size()){
