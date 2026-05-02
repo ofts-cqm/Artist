@@ -83,8 +83,19 @@ public class StockController {
 
         String target = Config.reversed ? "Space" : "Carpet";
         if (shared) {
-            assert Minecraft.getInstance().player != null;
-            Minecraft.getInstance().player.displayClientMessage(Component.literal("Not Enough " + target + " in YCK, Stopping"), false);
+            LocalPlayer player = Minecraft.getInstance().player;
+            assert player != null;
+
+            // before stopping, check stock one last time
+            MovementController.checkBlocks(false);
+            for (ItemStack itemStack : player.getInventory()) {
+                if (itemStack.is(MovementController.target)) {
+                    MovementController.start();
+                    return true;
+                }
+            }
+
+            player.displayClientMessage(Component.literal("Not Enough " + target + " in YCK, Stopping"), false);
             DesktopNotifier.notify("Artist", "Not Enough " + target + " in YCK, Stopping");
             shared = false;
         }else {

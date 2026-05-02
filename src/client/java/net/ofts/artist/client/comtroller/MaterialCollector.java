@@ -150,7 +150,7 @@ public class MaterialCollector {
     }
 
     private static void loadChests(){
-        if (chests != null) return;
+        //if (chests != null) return;
         chests = new HashMap<>();
 
         ClientLevel level = Minecraft.getInstance().level;

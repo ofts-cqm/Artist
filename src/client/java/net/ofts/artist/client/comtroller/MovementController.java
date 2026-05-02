@@ -64,7 +64,7 @@ public class MovementController {
         cumulativeError++;
     }
 
-    private static boolean checkBlocks(boolean updateDirection){
+    public static boolean checkBlocks(boolean updateDirection){
         boolean has = false;
         ClientLevel level = Minecraft.getInstance().level;
         assert level != null;
@@ -110,7 +110,7 @@ public class MovementController {
     private static Vec3 direction = new Vec3(0, 0, 0), playerPos;
     private static int cumulativeError;
     private static double minDis;
-    private static Item target;
+    public static Item target;
 
     private static void update(){
         if (!run) return;
