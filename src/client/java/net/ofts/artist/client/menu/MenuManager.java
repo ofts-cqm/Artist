@@ -2,17 +2,9 @@ package net.ofts.artist.client.menu;
 
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
-import net.minecraft.client.gui.screens.inventory.ContainerScreen;
-import net.minecraft.world.entity.player.Inventory;
-import net.minecraft.world.inventory.ClickType;
-import net.minecraft.world.inventory.Slot;
-import net.minecraft.world.item.ItemStack;
 import net.ofts.artist.client.Config;
-import net.ofts.artist.client.DesktopNotifier;
-import net.ofts.artist.client.RawKeyInjector;
-import net.ofts.artist.client.comtroller.MovementController;
+import net.ofts.artist.client.comtroller.MaterialCollector;
 import net.ofts.artist.client.comtroller.StockController;
-import org.lwjgl.glfw.GLFW;
 
 import java.util.Arrays;
 
@@ -21,8 +13,9 @@ public class MenuManager {
     public static final int OPEN_YCK = 1;
     public static final int GET_CARPET_FROM_YCK = 2;
     public static final int GET_CARPET_FROM_YCK_SHARED = 3;
+    public static final int GET_CARPET_FROM_CHEST = 4;
 
-    private static final int TYPE_COUNT = 4;
+    private static final int TYPE_COUNT = 5;
 
     private static final MenuHandler[] handlers = new MenuHandler[TYPE_COUNT];
     private static final boolean[] taskQueue = new boolean[TYPE_COUNT];
@@ -89,5 +82,6 @@ public class MenuManager {
         handlers[1] = new MenuHandler(OPEN_YCK, "云仓库主菜单", StockController::checkYCKMenu);
         handlers[2] = new MenuHandler(GET_CARPET_FROM_YCK, "个人仓库", StockController::checkYCK);
         handlers[3] = new MenuHandler(GET_CARPET_FROM_YCK_SHARED, "共享仓库", StockController::checkYCK);
+        handlers[4] = new MenuHandler(GET_CARPET_FROM_CHEST, "Chest", MaterialCollector::handleChest);
     }
 }
