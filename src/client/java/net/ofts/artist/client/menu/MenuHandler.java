@@ -1,6 +1,5 @@
 package net.ofts.artist.client.menu;
 
-import java.util.function.Consumer;
 import java.util.function.Function;
 
 import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;

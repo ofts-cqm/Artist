@@ -12,10 +12,9 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.chat.Component;
+import net.ofts.artist.client.comtroller.MaterialCollector;
 import net.ofts.artist.client.comtroller.MaterialController;
 import net.ofts.artist.client.comtroller.MovementController;
-import net.ofts.artist.client.menu.MenuManager;
-import org.lwjgl.glfw.GLFW;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -35,6 +34,8 @@ public class Commands {
 
         builder.then(buildLoader());
 
+        builder.then(buildCollector());
+
         builder.then(buildQuerier());
 
         builder.then(buildTargeter());
@@ -43,7 +44,7 @@ public class Commands {
 
         builder.then(buildStop());
 
-        builder.then(buildOffset());
+        //builder.then(buildOffset());
 
         builder.then(buildState());
 
@@ -64,8 +65,18 @@ public class Commands {
     }
 
     private static int onLoad(CommandContext<FabricClientCommandSource> ctx){
-        Config.schematicName = StringArgumentType.getString(ctx, "schematic");
-        MaterialController.start();
+        String name;
+        try {
+            name = StringArgumentType.getString(ctx, "schematic");
+        }catch (IllegalArgumentException e){
+            MaterialController.searchPlacement();
+            return 1;
+        }
+        assert Minecraft.getInstance().player != null;
+        Minecraft.getInstance().player.displayClientMessage(Component.literal("Note: you are using a deprecated command!"), false);
+        Path schematicsDir = Minecraft.getInstance().gameDirectory.toPath().resolve("schematics");
+        Config.schematicPath = schematicsDir.resolve(name);
+        MaterialController.start(true);
         return 1;
     }
 
@@ -84,18 +95,10 @@ public class Commands {
         if (!found.get()){
             Minecraft.getInstance().execute(() -> {
                 assert Minecraft.getInstance().player != null;
-                Minecraft.getInstance().player.displayClientMessage(Component.literal("Data Not Found"), false);
+                Minecraft.getInstance().player.displayClientMessage(Component.literal("Data Not Found at Position " + pos.toShortString()), false);
             });
         }
         return found.get() ? 1 : 0;
-    }
-
-    private static int onOffset(CommandContext<FabricClientCommandSource> ctx) {
-        BlockPos pos = ctx.getSource().getPlayer().getOnPos();
-        Config.offset = pos;
-        assert Minecraft.getInstance().player != null;
-        Minecraft.getInstance().player.displayClientMessage(Component.literal("Offset to " + pos.toShortString() + "!"), false);
-        return 1;
     }
 
     private static int onTarget(CommandContext<FabricClientCommandSource> ctx){
@@ -125,7 +128,7 @@ public class Commands {
         LocalPlayer player = Minecraft.getInstance().player;
         assert player != null;
 
-        player.displayClientMessage(Component.literal("Current Loaded Schematic: " + Config.schematicName), false);
+        player.displayClientMessage(Component.literal("Current Loaded Schematic: " + (Config.lastSchematic == null ? "NOT LOADED" : Config.lastSchematic.getName())), false);
         player.displayClientMessage(Component.literal("Current Targets: "), false);
         for (Config.Carpets target : Config.targets) {
             player.displayClientMessage(Component.literal(target.name()), false);
@@ -168,14 +171,19 @@ public class Commands {
         return builder.buildFuture();
     }
 
+    @Deprecated
     private static LiteralArgumentBuilder<FabricClientCommandSource> buildLoader(){
-        return LiteralArgumentBuilder.<FabricClientCommandSource>literal("load")
-                .then(RequiredArgumentBuilder.<FabricClientCommandSource, String>argument("schematic", StringArgumentType.greedyString())
-                        .executes(Commands::onLoad)
-                        .suggests(Commands::suggestSchematics)
-                )
+        return LiteralArgumentBuilder.<FabricClientCommandSource>literal("load").executes(Commands::onLoad);
+    }
+
+    private static LiteralArgumentBuilder<FabricClientCommandSource> buildCollector(){
+        return LiteralArgumentBuilder.<FabricClientCommandSource>literal("collect")
                 .executes(a -> {
-                    sendMessage("§eUsage: /artist load <schematic>");
+                    if (Config.lastSchematic == null){
+                        sendMessage("§4Schematic Not Loaded");
+                        return 0;
+                    }
+                    MaterialCollector.collectMaterial(Config.lastSchematic.getSchematic());
                     return 1;
                 });
     }
@@ -183,11 +191,6 @@ public class Commands {
     private static LiteralArgumentBuilder<FabricClientCommandSource> buildQuerier(){
         return LiteralArgumentBuilder.<FabricClientCommandSource>literal("query")
                 .executes(Commands::onQuery);
-    }
-
-    private static LiteralArgumentBuilder<FabricClientCommandSource> buildOffset(){
-        return LiteralArgumentBuilder.<FabricClientCommandSource>literal("offset")
-                .executes(Commands::onOffset);
     }
 
     private static LiteralArgumentBuilder<FabricClientCommandSource> buildTargeter(){

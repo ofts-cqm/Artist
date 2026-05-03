@@ -1,24 +1,28 @@
 package net.ofts.artist.client;
 
+import fi.dy.masa.litematica.schematic.placement.SchematicPlacement;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
+import net.minecraft.world.phys.AABB;
 
+import java.nio.file.Path;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.concurrent.ConcurrentHashMap;
 
 public class Config {
     public static final int MENU_WAIT_TIME = 200;
-    public static String schematicName;
-    public static BlockPos offset = new BlockPos(-2240, 161, -3137);
+    @Deprecated
+    public static Path schematicPath;
+    public static SchematicPlacement lastSchematic;
+    public static AABB placementAABB = new AABB(0, 0, 0, 0, 0, 0);
     public static HashMap<Carpets, HashSet<BlockPos>> blockList = new HashMap<>();
-    //public static HashMap<BlockPos, Block> blockMap = new HashMap<>();
-    public static ConcurrentHashMap<BlockPos, Carpets> remaining = new ConcurrentHashMap<>();
     public static HashSet<BlockPos> emptyPos = new HashSet<>();
     public static HashSet<Carpets> targets = new HashSet<>();
     public static Item requiredItems = null;
+    public static int requiredCount;
+    public static boolean reversed;
 
     public enum Carpets {
         WHITE("minecraft:white_carpet", Blocks.WHITE_CARPET),

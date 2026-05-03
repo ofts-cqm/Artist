@@ -11,7 +11,6 @@ import net.minecraft.world.entity.item.ItemEntity;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.state.BlockState;
-import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
 import net.ofts.artist.client.BotInput;
 import net.ofts.artist.client.Config;
@@ -27,6 +26,7 @@ import java.util.concurrent.TimeUnit;
 public class MovementController {
     private static boolean run = false;
     private static ClientInput oldInput = null;
+    private static BotInput botInput;
 
     public static void toggle(){
         if (run) pause();
@@ -34,10 +34,12 @@ public class MovementController {
     }
 
     public static void start(){
+        if (!MaterialController.searchPlacement()) return;
+
         run = true;
         LocalPlayer player = Minecraft.getInstance().player;
         assert player != null;
-        getOrInstall(player).setForward(true);
+        botInput = getOrInstall(player);
         RawKeyInjector.enablePrinter();
         player.displayClientMessage(Component.literal("Start Painting!"), false);
     }
@@ -62,7 +64,7 @@ public class MovementController {
         cumulativeError++;
     }
 
-    private static boolean checkBlocks(boolean updateDirection){
+    public static boolean checkBlocks(boolean updateDirection){
         boolean has = false;
         ClientLevel level = Minecraft.getInstance().level;
         assert level != null;
@@ -108,11 +110,12 @@ public class MovementController {
     private static Vec3 direction = new Vec3(0, 0, 0), playerPos;
     private static int cumulativeError;
     private static double minDis;
-    private static Item target;
+    public static Item target;
 
     private static void update(){
         if (!run) return;
 
+        botInput.setForward(true);
         Minecraft client = Minecraft.getInstance();
         LocalPlayer player = client.player;
         assert player != null;
@@ -126,17 +129,12 @@ public class MovementController {
 
         List<ItemEntity> entities = level.getEntitiesOfClass(
                 ItemEntity.class,
-                new AABB(playerPos.add(128, 1, 128), playerPos.add(-128, -1, -128)),
+                Config.placementAABB,
                 (item) -> item.getItem().is(ItemTags.WOOL_CARPETS));
 
         // entity first, we need to pick up the carpets
         if (!entities.isEmpty()){
-            ItemEntity closest = Collections.min(entities, (a, b) -> {
-                double dis1 = a.position().subtract(playerPos).lengthSqr();
-                double dis2 = b.position().subtract(playerPos).lengthSqr();
-
-                return (int)(dis1 - dis2);
-            });
+            ItemEntity closest = Collections.min(entities, (a, b) -> b.getAge() - a.getAge());
 
             direction = closest.position().subtract(playerPos);
             target = null;
@@ -147,7 +145,7 @@ public class MovementController {
 
         if (!has) {
             pause();
-            player.displayClientMessage(Component.literal("Task Finished!"), false);
+            client.execute(() -> player.displayClientMessage(Component.literal("Task Finished!"), false));
             DesktopNotifier.notify("Artist", "Task Finished!");
         }
 
