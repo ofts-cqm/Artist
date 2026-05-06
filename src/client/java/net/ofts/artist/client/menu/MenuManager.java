@@ -20,6 +20,7 @@ public class MenuManager {
     private static final MenuHandler[] handlers = new MenuHandler[TYPE_COUNT];
     private static final boolean[] taskQueue = new boolean[TYPE_COUNT];
     private static final AbstractContainerScreen<?>[] arrivedList = new AbstractContainerScreen<?>[TYPE_COUNT];
+    private static final AbstractContainerScreen<?>[] processingList = new AbstractContainerScreen<?>[TYPE_COUNT];
 
     public static void clearTaskQueue() {
         Arrays.fill(taskQueue, false);
@@ -52,6 +53,13 @@ public class MenuManager {
         return -1;
     }
 
+    public static boolean isProcessing(AbstractContainerScreen<?> menu){
+        for (AbstractContainerScreen<?> screen : processingList) {
+            if (menu == screen) return true;
+        }
+        return false;
+    }
+
     private static void sleep(){
         try {
             Thread.sleep(Config.MENU_WAIT_TIME);
@@ -63,11 +71,13 @@ public class MenuManager {
 
         AbstractContainerScreen<?> menu = arrivedList[arrivedTask];
         arrivedList[arrivedTask] = null;
+        processingList[arrivedTask] = menu;
 
         sleep();
 
         boolean close = handlers[arrivedTask].handleMenu(menu);
 
+        processingList[arrivedTask] = null;
         if (close) closeMenu(menu);
     }
 

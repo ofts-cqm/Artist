@@ -11,11 +11,21 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 @Mixin(Minecraft.class)
 public class HandleScreenMixin {
-    @Inject(method = "setScreen", at = @At("HEAD"))
+    @Inject(method = "setScreen", at = @At("HEAD"), cancellable = true)
     private void onSetScreen(Screen screen, CallbackInfo ci){
+        if (Minecraft.getInstance().screen instanceof AbstractContainerScreen<?> previous && MenuManager.isProcessing(previous)){
+            ci.cancel();
+            return;
+        }
+
         if (screen instanceof AbstractContainerScreen<?> containerScreen){
             MenuManager.handleMenu(containerScreen);
-            System.out.println("Menu Updated, new Menu: " + containerScreen.getTitle().getString());
         }
+        System.out.println(
+                "Menu Updated, previous Menu: "
+                + (Minecraft.getInstance().screen == null ? "[Null]" : Minecraft.getInstance().screen.getTitle().getString())
+                + "new Menu: "
+                + (screen == null ? "[Null]" : screen.getTitle().getString())
+        );
     }
 }
