@@ -4,6 +4,7 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
 import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.network.chat.Component;
+import net.minecraft.tags.ItemTags;
 import net.minecraft.world.inventory.ClickType;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
@@ -62,7 +63,19 @@ public class StockController {
     private static boolean shared = false;
 
     public static boolean checkYCKMenu(AbstractContainerScreen<?> screen){
-        MenuHandler.sendClick(screen.getMenu(), shared ? 11 : 10, ClickType.PICKUP);
+        int slot = shared ? 11 : 10;
+        if (!screen.getMenu().getSlot(slot).getItem().is(ItemTags.SHULKER_BOXES)){
+            // uh oh, we are in an error state.
+            new Thread(() -> {
+                sleep();
+                Objects.requireNonNull(Minecraft.getInstance().getConnection()).sendCommand("yck OFTS_CQM");
+                MenuManager.checkMenu(MenuManager.OPEN_YCK);
+            }).start();
+
+            return true;
+        }
+
+        MenuHandler.sendClick(screen.getMenu(), slot, ClickType.PICKUP);
         MenuManager.checkMenu(shared ? MenuManager.GET_CARPET_FROM_YCK_SHARED : MenuManager.GET_CARPET_FROM_YCK);
         return false;
     }

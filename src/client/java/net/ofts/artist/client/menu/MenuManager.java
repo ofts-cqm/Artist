@@ -60,6 +60,13 @@ public class MenuManager {
         return false;
     }
 
+    public static boolean isProcessing(int menuId){
+        for (AbstractContainerScreen<?> screen : processingList) {
+            if (screen != null && screen.getMenu().containerId == menuId) return true;
+        }
+        return false;
+    }
+
     private static void sleep(){
         try {
             Thread.sleep(Config.MENU_WAIT_TIME);

@@ -3,7 +3,9 @@
   "minVersion": "0.8",
   "package": "net.ofts.artist.client.mixin",
   "compatibilityLevel": "JAVA_21",
-  "client": [],
+  "client": [
+    "ClientPackageInterceptor"
+  ],
   "injectors": {
     "defaultRequire": 1
   },
