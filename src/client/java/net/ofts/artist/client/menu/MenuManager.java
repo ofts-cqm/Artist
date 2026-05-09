@@ -26,6 +26,7 @@ public class MenuManager {
     public static void clearTaskQueue() {
         Arrays.fill(taskQueue, false);
         Arrays.fill(arrivedList, null);
+        Arrays.fill(processingList, null);
     }
 
     public static void checkMenu(int id){

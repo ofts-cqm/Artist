@@ -16,6 +16,7 @@ import net.ofts.artist.client.BotInput;
 import net.ofts.artist.client.Config;
 import net.ofts.artist.client.DesktopNotifier;
 import net.ofts.artist.client.RawKeyInjector;
+import net.ofts.artist.client.menu.MenuManager;
 
 import java.util.Collections;
 import java.util.HashSet;
@@ -29,7 +30,7 @@ public class MovementController {
     private static BotInput botInput;
 
     public static void toggle(){
-        if (run) pause();
+        if (run) stop();
         else start();
     }
 
@@ -42,6 +43,11 @@ public class MovementController {
         botInput = getOrInstall(player).setSneak(false);
         RawKeyInjector.enablePrinter();
         player.displayClientMessage(Component.literal("Start Painting!"), false);
+    }
+
+    public static void stop(){
+        pause();
+        MenuManager.clearTaskQueue();
     }
 
     public static void pause(){
