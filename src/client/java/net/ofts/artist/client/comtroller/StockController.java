@@ -79,7 +79,8 @@ public class StockController {
             if (i < 9)
                 inventory.setSelectedSlot(i);
             else
-                MenuHandler.sendClick(screen.getMenu(), i + 45, ClickType.SWAP, (byte)(inventory.getSelectedSlot() + 1));
+                gameMode.handleInventoryMouseClick(screen.getMenu().containerId, i + 45, inventory.getSelectedSlot(), ClickType.SWAP, player);
+                //MenuHandler.sendClick(screen.getMenu(), i + 45, ClickType.SWAP, (byte)inventory.getSelectedSlot());
 
             new Thread(() -> {
                 sleep();
