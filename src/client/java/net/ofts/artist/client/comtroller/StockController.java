@@ -36,7 +36,7 @@ public class StockController {
             Config.reversed = false;
             if (Config.requiredCount == 0) return;
             MenuManager.checkMenu(MenuManager.GET_CARPET_FROM_ENDER_CHEST);
-            Objects.requireNonNull(Minecraft.getInstance().getConnection()).sendCommand("myx");
+            Objects.requireNonNull(Minecraft.getInstance().getConnection()).sendCommand(Config.CONFIG.enderChestCommand());
         }else{
             player.displayClientMessage(Component.literal("Not Enough Space in Inventory! Process Terminates!"), false);
             DesktopNotifier.notify("Artist", "Auto Painting Paused: Not Enough Block!");
@@ -79,7 +79,7 @@ public class StockController {
             if (i < 9)
                 inventory.setSelectedSlot(i);
             else
-                MenuHandler.sendClick(screen.getMenu(), i + 45, ClickType.SWAP, (byte)inventory.getSelectedSlot());
+                MenuHandler.sendClick(screen.getMenu(), i + 45, ClickType.SWAP, (byte)(inventory.getSelectedSlot() + 1));
 
             new Thread(() -> {
                 sleep();
