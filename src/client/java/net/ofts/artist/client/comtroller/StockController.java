@@ -128,7 +128,7 @@ public class StockController {
     }
 
     public static boolean checkShulkerBox(AbstractContainerScreen<?> screen){
-        boolean success = getFromEnderChest(screen, true);
+        boolean success = getFromEnderChest(screen, false);
 
         LocalPlayer player = Minecraft.getInstance().player;
         assert player != null;
@@ -207,7 +207,7 @@ public class StockController {
 
     private static boolean putOrGetFromChest(AbstractContainerScreen<?> screen){
         if (Config.reversed) return putToChest(screen);
-        else return getFromEnderChest(screen, false);
+        else return getFromEnderChest(screen, true);
     }
 
     private static boolean putToChest(AbstractContainerScreen<?> screen){
