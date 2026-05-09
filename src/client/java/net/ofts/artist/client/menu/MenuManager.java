@@ -14,8 +14,9 @@ public class MenuManager {
     public static final int GET_CARPET_FROM_YCK = 2;
     public static final int GET_CARPET_FROM_YCK_SHARED = 3;
     public static final int GET_CARPET_FROM_CHEST = 4;
+    public static final int GET_CARPET_FROM_SHULKER_BOX = 5;
 
-    private static final int TYPE_COUNT = 5;
+    private static final int TYPE_COUNT = 6;
 
     private static final MenuHandler[] handlers = new MenuHandler[TYPE_COUNT];
     private static final boolean[] taskQueue = new boolean[TYPE_COUNT];
@@ -100,5 +101,6 @@ public class MenuManager {
         handlers[2] = new MenuHandler(GET_CARPET_FROM_YCK, "个人仓库", StockController::checkYCK);
         handlers[3] = new MenuHandler(GET_CARPET_FROM_YCK_SHARED, "共享仓库", StockController::checkYCK);
         handlers[4] = new MenuHandler(GET_CARPET_FROM_CHEST, "Chest", MaterialCollector::handleChest);
+        handlers[5] = new MenuHandler(GET_CARPET_FROM_SHULKER_BOX, "Shulker Box", StockController::checkShulkerBox);
     }
 }

@@ -39,7 +39,7 @@ public class MovementController {
         run = true;
         LocalPlayer player = Minecraft.getInstance().player;
         assert player != null;
-        botInput = getOrInstall(player);
+        botInput = getOrInstall(player).setSneak(false);
         RawKeyInjector.enablePrinter();
         player.displayClientMessage(Component.literal("Start Painting!"), false);
     }
@@ -48,8 +48,8 @@ public class MovementController {
         run = false;
         LocalPlayer player = Minecraft.getInstance().player;
         assert player != null;
-        getOrInstall(player).setForward(false);
-        player.input = oldInput;
+        RawKeyInjector.disablePrinter();
+        uninstall(player);
     }
 
     private static void checkError(BlockPos pos, boolean updateDirection){
@@ -173,6 +173,11 @@ public class MovementController {
         oldInput = player.input;
         player.input = botInput;
         return botInput;
+    }
+
+    public static void uninstall(LocalPlayer player){
+        getOrInstall(player).setSneak(false).setForward(false);
+        player.input = oldInput;
     }
 
     private static void runUpdate(){

@@ -10,19 +10,20 @@ import net.minecraft.world.phys.AABB;
 import java.nio.file.Path;
 import java.util.HashMap;
 import java.util.HashSet;
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
+import net.fabricmc.loader.api.FabricLoader;
+import java.io.File;
+import java.io.FileReader;
+import java.io.FileWriter;
+import java.io.IOException;
 
 public class Config {
-    public static final int MENU_WAIT_TIME = 200;
-    @Deprecated
-    public static Path schematicPath;
-    public static SchematicPlacement lastSchematic;
-    public static AABB placementAABB = new AABB(0, 0, 0, 0, 0, 0);
-    public static HashMap<Carpets, HashSet<BlockPos>> blockList = new HashMap<>();
-    public static HashSet<BlockPos> emptyPos = new HashSet<>();
-    public static HashSet<Carpets> targets = new HashSet<>();
-    public static Item requiredItems = null;
-    public static int requiredCount;
-    public static boolean reversed;
+    private enum HandleMethod {
+        SHULKER_BOX,
+        YCK,
+        NONE
+    }
 
     public enum Carpets {
         WHITE("minecraft:white_carpet", Blocks.WHITE_CARPET),
@@ -49,4 +50,55 @@ public class Config {
             this.block = block;
         }
     }
+
+    public record ConfigDetails(HandleMethod handleMethod){}
+
+    public static final int MENU_WAIT_TIME = 200;
+    @Deprecated
+    public static Path schematicPath;
+    public static SchematicPlacement lastSchematic;
+    public static AABB placementAABB = new AABB(0, 0, 0, 0, 0, 0);
+    public static HashMap<Carpets, HashSet<BlockPos>> blockList = new HashMap<>();
+    public static HashSet<BlockPos> emptyPos = new HashSet<>();
+    public static HashSet<Carpets> targets = new HashSet<>();
+    public static Item requiredItems = null;
+    public static int requiredCount;
+    public static boolean reversed;
+    public static ConfigDetails CONFIG = new ConfigDetails(HandleMethod.SHULKER_BOX);
+
+    private static final File CONFIG_FILE = FabricLoader.getInstance()
+            .getConfigDir()
+            .resolve("artist.json")
+            .toFile();
+
+    private static final Gson GSON = new GsonBuilder().setPrettyPrinting().create();
+
+    public static void load() {
+        if (CONFIG_FILE.exists()) {
+            try (FileReader reader = new FileReader(CONFIG_FILE)) {
+                // Read existing file
+                CONFIG = GSON.fromJson(reader, CONFIG.getClass());
+            } catch (IOException e) {
+                CONFIG = new ConfigDetails(HandleMethod.SHULKER_BOX);
+            }
+        } else {
+            save();
+        }
+    }
+
+    public static void save() {
+        try (FileWriter writer = new FileWriter(CONFIG_FILE)) {
+            GSON.toJson(CONFIG, writer);
+        } catch (IOException ignored) {
+        }
+    }
+
+    public static boolean useShulkerBox(){
+        return CONFIG.handleMethod == HandleMethod.SHULKER_BOX;
+    }
+
+    public static boolean useYCK(){
+        return CONFIG.handleMethod == HandleMethod.YCK;
+    }
 }
+

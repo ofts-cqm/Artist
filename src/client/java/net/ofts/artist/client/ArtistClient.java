@@ -31,5 +31,6 @@ public class ArtistClient implements ClientModInitializer {
             while (keyBinding.consumeClick()) MovementController.toggle();
         });
         DesktopNotifier.init();
+        Config.load();
     }
 }

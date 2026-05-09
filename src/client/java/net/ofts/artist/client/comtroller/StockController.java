@@ -2,13 +2,18 @@ package net.ofts.artist.client.comtroller;
 
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
+import net.minecraft.client.multiplayer.MultiPlayerGameMode;
 import net.minecraft.client.player.LocalPlayer;
+import net.minecraft.core.component.DataComponents;
 import net.minecraft.network.chat.Component;
 import net.minecraft.tags.ItemTags;
+import net.minecraft.world.InteractionHand;
+import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.inventory.ClickType;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
+import net.minecraft.world.item.component.ItemContainerContents;
 import net.ofts.artist.client.Config;
 import net.ofts.artist.client.DesktopNotifier;
 import net.ofts.artist.client.RawKeyInjector;
@@ -48,16 +53,58 @@ public class StockController {
         if (putOrGetFromChest(screen)) return true;
 
         String target = Config.reversed ? "Space" : "Carpet";
-        assert Minecraft.getInstance().player != null;
-        Minecraft.getInstance().player.displayClientMessage(Component.literal("Not Enough " + target + " in Ender Chest, Searching in YCK"), false);
-        DesktopNotifier.notify("Artist", "Not Enough " + target + " in Ender Chest, Searching in YCK");
+        LocalPlayer player = Minecraft.getInstance().player;
+        assert player != null;
+        player.displayClientMessage(Component.literal("Not Enough " + target + " in Ender Chest"), false);
+        DesktopNotifier.notify("Artist", "Not Enough " + target + " in Ender Chest");
 
-        new Thread(() -> {
-            sleep();
-            Objects.requireNonNull(Minecraft.getInstance().getConnection()).sendCommand("yck OFTS_CQM");
-            MenuManager.checkMenu(MenuManager.OPEN_YCK);
-        }).start();
+        if (Config.useYCK()) {
+            new Thread(() -> {
+                sleep();
+                Objects.requireNonNull(Minecraft.getInstance().getConnection()).sendCommand("yck OFTS_CQM");
+                MenuManager.checkMenu(MenuManager.OPEN_YCK);
+            }).start();
+        }else if (Config.useShulkerBox()){
+            Inventory inventory = player.getInventory();
+            int i = getSlotWithTargetShulkerBox(inventory);
+
+            if (i == -1){
+                checkAndStop(player, "No Target Shulker Box Found, Stopping");
+                return true;
+            }
+
+            MultiPlayerGameMode gameMode = Minecraft.getInstance().gameMode;
+            assert gameMode != null;
+
+            if (i < 9)
+                inventory.setSelectedSlot(i);
+            else
+                MenuHandler.sendClick(screen.getMenu(), i + 45, ClickType.SWAP, (byte)inventory.getSelectedSlot());
+
+            new Thread(() -> {
+                sleep();
+                MovementController.getOrInstall(player).setSneak(true);
+                sleep();
+                gameMode.useItem(player, InteractionHand.MAIN_HAND);
+                MenuManager.checkMenu(MenuManager.GET_CARPET_FROM_SHULKER_BOX);
+            }).start();
+        }
         return true;
+    }
+
+    private static int getSlotWithTargetShulkerBox(Inventory inventory){
+        for (int i = 0; i < 36; i++) {
+            ItemStack itemStack = inventory.getItem(i);
+            if (!itemStack.is(ItemTags.SHULKER_BOXES)) continue;
+
+            ItemContainerContents contents = itemStack.getOrDefault(
+                    DataComponents.CONTAINER,
+                    ItemContainerContents.EMPTY
+            );
+
+            if(contents.stream().anyMatch(stack -> stack.is(Config.requiredItems))) return i;
+        }
+        return -1;
     }
 
     private static boolean shared = false;
@@ -75,42 +122,56 @@ public class StockController {
             return true;
         }
 
-        MenuHandler.sendClick(screen.getMenu(), slot, ClickType.PICKUP);
+        MenuHandler.sendClick(screen.getMenu(), slot, ClickType.PICKUP, (byte) 0);
         MenuManager.checkMenu(shared ? MenuManager.GET_CARPET_FROM_YCK_SHARED : MenuManager.GET_CARPET_FROM_YCK);
         return false;
+    }
+
+    public static boolean checkShulkerBox(AbstractContainerScreen<?> screen){
+        boolean success = getFromEnderChest(screen, true);
+
+        LocalPlayer player = Minecraft.getInstance().player;
+        assert player != null;
+
+        if (!success) MovementController.uninstall(player);
+        return true;
     }
 
     private static boolean nextPage(AbstractContainerScreen<?> screen){
         ItemStack item = screen.getMenu().slots.get(53).getItem();
         if (item.is(Items.ARROW)){
-            MenuHandler.sendClick(screen.getMenu(), 53, ClickType.PICKUP);
+            MenuHandler.sendClick(screen.getMenu(), 53, ClickType.PICKUP, (byte) 0);
             MenuManager.checkMenu(shared ? MenuManager.GET_CARPET_FROM_YCK_SHARED : MenuManager.GET_CARPET_FROM_YCK);
             return true;
         }
         return false;
     }
 
+    private static void checkAndStop(LocalPlayer player, String message){
+        // before stopping, check stock one last time
+        MovementController.checkBlocks(false);
+        for (ItemStack itemStack : player.getInventory()) {
+            if (itemStack.is(MovementController.target)) {
+                MovementController.start();
+                shared = false;
+                return;
+            }
+        }
+
+        player.displayClientMessage(Component.literal(message), false);
+        DesktopNotifier.notify("Artist", message);
+        shared = false;
+    }
+
     public static boolean checkYCK(AbstractContainerScreen<?> screen){
         if (putOrGetFromChest(screen)) return true;
         if (nextPage(screen)) return false;
 
-        String target = Config.reversed ? "Space" : "Carpet";
         if (shared) {
             LocalPlayer player = Minecraft.getInstance().player;
             assert player != null;
 
-            // before stopping, check stock one last time
-            MovementController.checkBlocks(false);
-            for (ItemStack itemStack : player.getInventory()) {
-                if (itemStack.is(MovementController.target)) {
-                    MovementController.start();
-                    return true;
-                }
-            }
-
-            player.displayClientMessage(Component.literal("Not Enough " + target + " in YCK, Stopping"), false);
-            DesktopNotifier.notify("Artist", "Not Enough " + target + " in YCK, Stopping");
-            shared = false;
+            checkAndStop(player, "Not Enough Items in YCK, Stopping");
         }else {
             new Thread(() -> {
                 sleep();
@@ -146,7 +207,7 @@ public class StockController {
 
     private static boolean putOrGetFromChest(AbstractContainerScreen<?> screen){
         if (Config.reversed) return putToChest(screen);
-        else return getFromEnderChest(screen);
+        else return getFromEnderChest(screen, false);
     }
 
     private static boolean putToChest(AbstractContainerScreen<?> screen){
@@ -166,14 +227,14 @@ public class StockController {
         return false;
     }
 
-    private static boolean getFromEnderChest(AbstractContainerScreen<?> screen){
+    private static boolean getFromEnderChest(AbstractContainerScreen<?> screen, boolean large){
         if (Config.requiredItems == null) return true;
 
         LocalPlayer player = Minecraft.getInstance().player;
         assert player != null;
         player.displayClientMessage(Component.literal("Plan to pick up " + Config.requiredCount + " carpets."), false);
 
-        if (InventoryUtils.getFromChest(screen, Config.requiredItems, Config.requiredCount, 0, 54, player.getInventory()) != 0){
+        if (InventoryUtils.getFromChest(screen, Config.requiredItems, Config.requiredCount, 0, large ? 54 : 27, player.getInventory()) != 0){
             MovementController.start();
             shared = false;
             new Thread(() -> {

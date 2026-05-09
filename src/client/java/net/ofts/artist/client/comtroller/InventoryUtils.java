@@ -28,7 +28,7 @@ public class InventoryUtils {
         for (int i = from; i < to; i++) {
             Slot slot = slots.get(i);
             if (slot.getItem().is(required) && slot.getItem().getCount() == 64){
-                MenuHandler.sendClick(screen.getMenu(), i, ClickType.QUICK_MOVE);
+                MenuHandler.sendClick(screen.getMenu(), i, ClickType.QUICK_MOVE, (byte) 0);
                 clicked++;
                 sleep();
                 if (clicked >= amount) break;

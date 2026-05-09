@@ -16,6 +16,16 @@ public final class BotInput extends ClientInput {
             false   // sprint
     );
 
+    private static final Input SNEAK = new Input(
+            false,   // forward
+            false,  // backward
+            false,  // left
+            false,  // right
+            false,  // jump
+            true,  // sneak
+            false   // sprint
+    );
+
     private static final Input EMPTY = Input.EMPTY;
 
     private boolean forward;
@@ -24,6 +34,16 @@ public final class BotInput extends ClientInput {
         this.forward = forward;
         this.keyPresses = forward ? FORWARD_ONLY : EMPTY;
         this.moveVector = forward ? Vec2.UNIT_Y : Vec2.ZERO;
+    }
+
+    public BotInput setSneak(boolean sneak){
+        if (sneak) {
+            this.keyPresses = SNEAK;
+            this.moveVector = Vec2.ZERO;
+        }else{
+            setForward(forward);
+        }
+        return this;
     }
 
     @Override

@@ -20,7 +20,7 @@ public record MenuHandler(int id, String menuMatcher, Function<AbstractContainer
         return slotHandler.apply(screen);
     }
 
-    public static void sendClick(AbstractContainerMenu menu, int slot, ClickType type){
+    public static void sendClick(AbstractContainerMenu menu, int slot, ClickType type, byte button){
         LOGGER.info("sending click @ slot={} to menu {}", slot, menu.containerId);
 
         Minecraft client = Minecraft.getInstance();
@@ -30,6 +30,6 @@ public record MenuHandler(int id, String menuMatcher, Function<AbstractContainer
         if (client.getConnection() == null) return;
         HashedStack carriedItem = HashedStack.create(menu.getCarried(), client.getConnection().decoratedHashOpsGenenerator());
 
-        client.getConnection().send(new ServerboundContainerClickPacket(syncId, stateId, (short) slot, (byte) 0, type, new Int2ObjectOpenHashMap<>(), carriedItem));
+        client.getConnection().send(new ServerboundContainerClickPacket(syncId, stateId, (short) slot, button, type, new Int2ObjectOpenHashMap<>(), carriedItem));
     }
 }
