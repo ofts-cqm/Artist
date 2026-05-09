@@ -25,19 +25,14 @@ by creating a bot that automatically place carpets,
 so the player can be freed from this repetitive task and spend their time on more valuable things. 
 
 After placing a schematic down (using Litematica) and storing all materials in 
-inventory, Ender chest, or cloud storage, you can `Y` to toggle the bot.
+inventory, Ender chest, or Shulker Box in inventory, you can `Y` to toggle the bot.
 The bot will then automatically build your pixel art, automatically break any wrong
 blocks, automatically pick-up any carpets, and automatically replenish supplies. 
-
-
-## Note:
-- This mod is a **15-Color** painting bot, meaning it does not support **Gray**
-- This mod is **In Development**, and various bugs may occur.
 
 # How to use:
 
 1. Place a schematic down via Litematica. 
-2. Load all required materials in inventory, Ender Chest, or cloud storage
+2. Load all required materials in inventory, Ender Chest, or Shuker Box
 3. Press `Y` **INSIDE** your schematic placement to load and start
 
 Yes, that is the entire process. 
@@ -46,10 +41,16 @@ outside any placement, the bot will use the last placement, and if the bot canno
 the last placement, it will stop. 
 
 
-This bot is fully automatic and does not require 
+This bot is fully automatic and does theoretically not require 
 human oversight during the building process. However, because
 this mod is still in development, my personal recommendation is to check its state
 every 10 min. 
+
+## Note:
+- This mod is a **15-Color** painting bot, meaning it does not support **Gray**
+- This mod is **In Development**, and various bugs may occur.
+- This mod uses sneak+rightclick to open Shulker Box. 
+Your server must have Quick Shulker Box or similar plugins installed. 
 
 ## Commands:
 
