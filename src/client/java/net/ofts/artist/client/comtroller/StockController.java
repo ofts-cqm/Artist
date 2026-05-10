@@ -84,6 +84,8 @@ public class StockController {
                 gameMode.handleInventoryMouseClick(screen.getMenu().containerId, i + 45, inventory.getSelectedSlot(), ClickType.SWAP, player);
                 //MenuHandler.sendClick(screen.getMenu(), i + 45, ClickType.SWAP, (byte)inventory.getSelectedSlot());
 
+            if (player.getXRot() > 0) player.setXRot(-45);
+
             new Thread(() -> {
                 sleep();
                 MovementController.getOrInstall(player).setSneak(true);
