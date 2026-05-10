@@ -132,6 +132,7 @@ public class StockController {
 
     public static boolean checkShulkerBox(AbstractContainerScreen<?> screen){
         doRightClick = false;
+        failedCount = 0;
         getFromEnderChest(screen, false);
         MovementController.startIfNot();
         return true;
@@ -248,6 +249,7 @@ public class StockController {
     }
 
     public static boolean doRightClick = false;
+    public static int failedCount = 0;
 
     private static void rightClick(){
         if (!doRightClick) return;
@@ -259,12 +261,41 @@ public class StockController {
             if (gameMode == null || player == null) return;
 
             if (!player.getInventory().getSelectedItem().is(ItemTags.SHULKER_BOXES)){
-                player.displayClientMessage(Component.literal("Error: Inventory Changed, Stopping..."), false);
+                Inventory inventory = player.getInventory();
+                int i = getSlotWithTargetShulkerBox(inventory);
+
+                if (i == -1){
+                    checkAndStop(player, "No Target Shulker Box Found, Stopping");
+                    doRightClick = false;
+                    failedCount = 0;
+                    return;
+                }
+
+                if (i < 9) {
+                    inventory.setSelectedSlot(i);
+                } else {
+                    player.displayClientMessage(Component.literal("Error: Inventory Changed, Stopping..."), false);
+                    DesktopNotifier.notify("Artist", "Error: Inventory Changed, Stopping...");
+                    doRightClick = false;
+                    failedCount = 0;
+                }
             }
 
             gameMode.useItem(player, InteractionHand.MAIN_HAND);
+            failedCount++;
+            if (failedCount >= 5){
+                player.displayClientMessage(Component.literal("Error: Open Shulker Box Not Working, Stopping..."), false);
+                DesktopNotifier.notify("Artist", "Error: Open Shulker Box Not Working, Stopping...");
+            }else if (failedCount >= 3){
+                MovementController.getOrInstall(player).setSneak(false);
+                sleep();
+                MovementController.getOrInstall(player).setSneak(true);
+                sleep();
+                failedCount = 0;
+            }
         } catch (Exception ignored) {
             doRightClick = false;
+            failedCount = 0;
         }
     }
 

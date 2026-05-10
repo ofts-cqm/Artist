@@ -29,10 +29,6 @@ public class MovementController {
     private static ClientInput oldInput = null;
     private static BotInput botInput;
 
-    public static boolean isPrinting() {
-        return run;
-    }
-
     public static void toggle(){
         if (run) stop();
         else start();
@@ -47,6 +43,7 @@ public class MovementController {
 
         run = true;
         StockController.doRightClick = false;
+        StockController.failedCount = 0;
         LocalPlayer player = Minecraft.getInstance().player;
         assert player != null;
         botInput = getOrInstall(player).setSneak(false);
@@ -62,6 +59,7 @@ public class MovementController {
     public static void pause(){
         run = false;
         StockController.doRightClick = false;
+        StockController.failedCount = 0;
         LocalPlayer player = Minecraft.getInstance().player;
         assert player != null;
         RawKeyInjector.disablePrinter();
@@ -150,7 +148,8 @@ public class MovementController {
 
         // entity first, we need to pick up the carpets
         if (!entities.isEmpty()){
-            ItemEntity closest = Collections.min(entities, (a, b) -> b.getAge() - a.getAge());
+            ItemEntity closest = entities.stream().filter(item -> item.getItem().is(ItemTags.SHULKER_BOXES)).findFirst().orElse(null);
+            if (closest == null) closest = Collections.min(entities, (a, b) -> b.getAge() - a.getAge());
 
             direction = closest.position().subtract(playerPos);
             target = null;
