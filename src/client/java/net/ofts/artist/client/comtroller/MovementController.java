@@ -29,15 +29,24 @@ public class MovementController {
     private static ClientInput oldInput = null;
     private static BotInput botInput;
 
+    public static boolean isPrinting() {
+        return run;
+    }
+
     public static void toggle(){
         if (run) stop();
         else start();
+    }
+
+    public static void startIfNot(){
+        if (!run) start();
     }
 
     public static void start(){
         if (!MaterialController.searchPlacement()) return;
 
         run = true;
+        StockController.doRightClick = false;
         LocalPlayer player = Minecraft.getInstance().player;
         assert player != null;
         botInput = getOrInstall(player).setSneak(false);
@@ -52,6 +61,7 @@ public class MovementController {
 
     public static void pause(){
         run = false;
+        StockController.doRightClick = false;
         LocalPlayer player = Minecraft.getInstance().player;
         assert player != null;
         RawKeyInjector.disablePrinter();

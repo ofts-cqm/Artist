@@ -21,6 +21,8 @@ import net.ofts.artist.client.menu.MenuHandler;
 import net.ofts.artist.client.menu.MenuManager;
 
 import java.util.Objects;
+import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
 
 public class StockController {
     public static void getCarpet(Item target){
@@ -86,7 +88,7 @@ public class StockController {
                 sleep();
                 MovementController.getOrInstall(player).setSneak(true);
                 sleep();
-                gameMode.useItem(player, InteractionHand.MAIN_HAND);
+                doRightClick = true;
                 MenuManager.checkMenu(MenuManager.GET_CARPET_FROM_SHULKER_BOX);
             }).start();
         }
@@ -129,12 +131,9 @@ public class StockController {
     }
 
     public static boolean checkShulkerBox(AbstractContainerScreen<?> screen){
-        boolean success = getFromEnderChest(screen, false);
-
-        LocalPlayer player = Minecraft.getInstance().player;
-        assert player != null;
-
-        if (!success) MovementController.uninstall(player);
+        doRightClick = false;
+        getFromEnderChest(screen, false);
+        MovementController.startIfNot();
         return true;
     }
 
@@ -246,5 +245,30 @@ public class StockController {
         }
 
         return false;
+    }
+
+    public static boolean doRightClick = false;
+
+    private static void rightClick(){
+        if (!doRightClick) return;
+
+        try {
+            MultiPlayerGameMode gameMode = Minecraft.getInstance().gameMode;
+            LocalPlayer player = Minecraft.getInstance().player;
+
+            if (gameMode == null || player == null) return;
+
+            if (!player.getInventory().getSelectedItem().is(ItemTags.SHULKER_BOXES)){
+                player.displayClientMessage(Component.literal("Error: Inventory Changed, Stopping..."), false);
+            }
+
+            gameMode.useItem(player, InteractionHand.MAIN_HAND);
+        } catch (Exception ignored) {
+            doRightClick = false;
+        }
+    }
+
+    static {
+        Executors.newScheduledThreadPool(1).scheduleWithFixedDelay(StockController::rightClick, 500, 500, TimeUnit.MILLISECONDS);
     }
 }

@@ -78,6 +78,7 @@ public class Config {
             try (FileReader reader = new FileReader(CONFIG_FILE)) {
                 // Read existing file
                 CONFIG = GSON.fromJson(reader, CONFIG.getClass());
+                if (CONFIG.enderChestCommand == null) CONFIG = createDefaultConfig();
             } catch (IOException e) {
                 CONFIG = createDefaultConfig();
             }

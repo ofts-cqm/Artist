@@ -20,7 +20,9 @@ public class ArtistClient implements ClientModInitializer {
         ClientPlayConnectionEvents.DISCONNECT.register((a, b) -> {
             MovementController.pause();
             MenuManager.clearTaskQueue();
+            WatchDog.stop();
         });
+        ClientPlayConnectionEvents.JOIN.register((a, b, c) -> WatchDog.start());
         keyBinding = KeyBindingHelper.registerKeyBinding(new KeyMapping(
                 "Toggle Painting",
                 InputConstants.Type.KEYSYM,
