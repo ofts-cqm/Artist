@@ -51,7 +51,11 @@ public class Config {
         }
     }
 
-    public record ConfigDetails(HandleMethod handleMethod, String enderChestCommand){}
+    public record ConfigDetails(HandleMethod handleMethod, String enderChestCommand){
+        public ConfigDetails(){
+            this(HandleMethod.SHULKER_BOX, "yck");
+        }
+    }
 
     public static final int MENU_WAIT_TIME = 200;
     @Deprecated
@@ -64,7 +68,7 @@ public class Config {
     public static Item requiredItems = null;
     public static int requiredCount;
     public static boolean reversed;
-    public static ConfigDetails CONFIG = createDefaultConfig();
+    public static ConfigDetails CONFIG = new ConfigDetails();
 
     private static final File CONFIG_FILE = FabricLoader.getInstance()
             .getConfigDir()
@@ -78,9 +82,8 @@ public class Config {
             try (FileReader reader = new FileReader(CONFIG_FILE)) {
                 // Read existing file
                 CONFIG = GSON.fromJson(reader, CONFIG.getClass());
-                if (CONFIG.enderChestCommand == null) CONFIG = createDefaultConfig();
             } catch (IOException e) {
-                CONFIG = createDefaultConfig();
+                CONFIG = new ConfigDetails();
             }
         } else {
             save();
@@ -92,10 +95,6 @@ public class Config {
             GSON.toJson(CONFIG, writer);
         } catch (IOException ignored) {
         }
-    }
-
-    private static ConfigDetails createDefaultConfig(){
-        return new ConfigDetails(HandleMethod.SHULKER_BOX, "myx");
     }
 
     public static boolean useShulkerBox(){
