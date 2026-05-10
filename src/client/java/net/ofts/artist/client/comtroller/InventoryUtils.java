@@ -27,7 +27,7 @@ public class InventoryUtils {
         NonNullList<Slot> slots = screen.getMenu().slots;
         for (int i = from; i < to; i++) {
             Slot slot = slots.get(i);
-            if (slot.getItem().is(required) && slot.getItem().getCount() == 64){
+            if (slot.getItem().is(required)){
                 MenuHandler.sendClick(screen.getMenu(), i, ClickType.QUICK_MOVE, (byte) 0);
                 clicked++;
                 sleep();
