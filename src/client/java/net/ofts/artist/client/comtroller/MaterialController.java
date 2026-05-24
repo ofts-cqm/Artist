@@ -119,6 +119,12 @@ public class MaterialController {
                     }
                 }
             }
+
+            for (int i = 0; i < size.getX(); i++){
+                for (int j = 0; j < size.getZ(); j++){
+                    Config.emptyPos.add(position.offset(i, size.getY() + 1, j));
+                }
+            }
         });
 
         assert client.player != null;
