@@ -68,8 +68,7 @@ public class MovementController {
 
     private static void checkError(BlockPos pos, boolean updateDirection){
         Vec3 dir2 = new Vec3(pos).subtract(playerPos);
-        // closer error, or first error
-        if (dir2.length() < minDis || cumulativeError == 0){
+        if (dir2.length() < minDis){
             minDis = dir2.length();
             if(updateDirection) direction = dir2;
             target = null;
