@@ -71,7 +71,6 @@ public class MovementController {
         if (dir2.length() < minDis){
             minDis = dir2.length();
             if(updateDirection) direction = dir2;
-            target = null;
         }
 
         cumulativeError++;
