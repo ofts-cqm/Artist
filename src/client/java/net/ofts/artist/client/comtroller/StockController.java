@@ -30,7 +30,7 @@ public class StockController {
         assert player != null;
 
         RawKeyInjector.disablePrinter();
-        player.displayClientMessage(Component.literal("Not Enough Block: ").append(target.getName()), false);
+        player.displayClientMessage(Component.literal("没有足够的").append(target.getName()), false);
 
         if (player.getInventory().contains(ItemStack::isEmpty)){
             Config.requiredItems = target.asItem();
@@ -40,8 +40,8 @@ public class StockController {
             MenuManager.checkMenu(MenuManager.GET_CARPET_FROM_ENDER_CHEST);
             Objects.requireNonNull(Minecraft.getInstance().getConnection()).sendCommand(Config.CONFIG.enderChestCommand());
         }else{
-            player.displayClientMessage(Component.literal("Not Enough Space in Inventory! Process Terminates!"), false);
-            DesktopNotifier.notify("Artist", "Auto Painting Paused: Not Enough Block!");
+            player.displayClientMessage(Component.literal("背包内没有剩余空间！打印终止！"), false);
+            DesktopNotifier.notify("Artist", "打印终止：背包内没有剩余空间");
         }
     }
 
@@ -57,13 +57,13 @@ public class StockController {
         String target = Config.reversed ? "Space" : "Carpet";
         LocalPlayer player = Minecraft.getInstance().player;
         assert player != null;
-        player.displayClientMessage(Component.literal("Not Enough " + target + " in Ender Chest"), false);
-        DesktopNotifier.notify("Artist", "Not Enough " + target + " in Ender Chest");
+        player.displayClientMessage(Component.literal("末影响内没有足够的 " + target), false);
+        DesktopNotifier.notify("Artist", "末影响内没有足够的" + target);
 
         if (Config.useYCK()) {
             new Thread(() -> {
                 sleep();
-                Objects.requireNonNull(Minecraft.getInstance().getConnection()).sendCommand("yck OFTS_CQM");
+                Objects.requireNonNull(Minecraft.getInstance().getConnection()).sendCommand("yck");
                 MenuManager.checkMenu(MenuManager.OPEN_YCK);
             }).start();
         }else if (Config.useShulkerBox()){
@@ -71,7 +71,7 @@ public class StockController {
             int i = getSlotWithTargetShulkerBox(inventory);
 
             if (i == -1){
-                checkAndStop(player, "No Target Shulker Box Found, Stopping");
+                checkAndStop(player, "没有找到包含目标物品的潜影盒，打印终止");
                 return true;
             }
 
@@ -115,17 +115,17 @@ public class StockController {
     private static boolean shared = false;
 
     public static boolean checkYCKMenu(AbstractContainerScreen<?> screen){
-        int slot = shared ? 11 : 10;
-        if (!screen.getMenu().getSlot(slot).getItem().is(ItemTags.SHULKER_BOXES)){
+        int slot = shared ? 10 : 11;
+        /*if (!screen.getMenu().getSlot(slot).getItem().is(ItemTags.SHULKER_BOXES)){
             // uh oh, we are in an error state.
             new Thread(() -> {
                 sleep();
-                Objects.requireNonNull(Minecraft.getInstance().getConnection()).sendCommand("yck OFTS_CQM");
+                Objects.requireNonNull(Minecraft.getInstance().getConnection()).sendCommand("yck");
                 MenuManager.checkMenu(MenuManager.OPEN_YCK);
             }).start();
 
             return true;
-        }
+        }*/
 
         MenuHandler.sendClick(screen.getMenu(), slot, ClickType.PICKUP, (byte) 0);
         MenuManager.checkMenu(shared ? MenuManager.GET_CARPET_FROM_YCK_SHARED : MenuManager.GET_CARPET_FROM_YCK);
@@ -174,12 +174,12 @@ public class StockController {
             LocalPlayer player = Minecraft.getInstance().player;
             assert player != null;
 
-            checkAndStop(player, "Not Enough Items in YCK, Stopping");
+            checkAndStop(player, "云仓库内没有足够的地毯，停止打印");
         }else {
             new Thread(() -> {
                 sleep();
                 shared = true;
-                Objects.requireNonNull(Minecraft.getInstance().getConnection()).sendCommand("yck OFTS_CQM");
+                Objects.requireNonNull(Minecraft.getInstance().getConnection()).sendCommand("yck");
                 MenuManager.checkMenu(MenuManager.OPEN_YCK);
             }).start();
         }
@@ -194,8 +194,8 @@ public class StockController {
 
         if (freeSlots == 0){
             assert Minecraft.getInstance().player != null;
-            Minecraft.getInstance().player.displayClientMessage(Component.literal("No Free Slot in Inventory"), false);
-            DesktopNotifier.notify("Artist", "No Free Slot in Inventory");
+            Minecraft.getInstance().player.displayClientMessage(Component.literal("背包内没有足够的空间"), false);
+            DesktopNotifier.notify("Artist", "背包内没有足够的空间");
             shared = false;
             return 0;
         }
@@ -235,7 +235,7 @@ public class StockController {
 
         LocalPlayer player = Minecraft.getInstance().player;
         assert player != null;
-        player.displayClientMessage(Component.literal("Plan to pick up " + Config.requiredCount + " carpets."), false);
+        player.displayClientMessage(Component.literal("计划拾取 " + Config.requiredCount + " 个地毯"), false);
 
         if (InventoryUtils.getFromChest(screen, Config.requiredItems, Config.requiredCount, 0, large ? 54 : 27, player.getInventory()) != 0){
             MovementController.start();

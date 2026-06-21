@@ -100,8 +100,8 @@ public class MenuManager {
         handlers[0] = new MenuHandler(GET_CARPET_FROM_ENDER_CHEST, "末影箱", StockController::checkEnderChest);
         handlers[1] = new MenuHandler(OPEN_YCK, "云仓库主菜单", StockController::checkYCKMenu);
         handlers[2] = new MenuHandler(GET_CARPET_FROM_YCK, "个人仓库", StockController::checkYCK);
-        handlers[3] = new MenuHandler(GET_CARPET_FROM_YCK_SHARED, "共享仓库", StockController::checkYCK);
-        handlers[4] = new MenuHandler(GET_CARPET_FROM_CHEST, "Chest", MaterialCollector::handleChest);
-        handlers[5] = new MenuHandler(GET_CARPET_FROM_SHULKER_BOX, "Shulker Box", StockController::checkShulkerBox);
+        handlers[3] = new MenuHandler(GET_CARPET_FROM_YCK_SHARED, "元傲奈我何", StockController::checkYCK);
+        handlers[4] = new MenuHandler(GET_CARPET_FROM_CHEST, "箱子", MaterialCollector::handleChest);
+        handlers[5] = new MenuHandler(GET_CARPET_FROM_SHULKER_BOX, "潜影盒", StockController::checkShulkerBox);
     }
 }

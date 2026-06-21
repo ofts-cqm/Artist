@@ -59,17 +59,17 @@ public class MaterialController {
 
         if (schematic == null) {
             if (Config.lastSchematic == null) {
-                player.displayClientMessage(Component.literal("§4Error: Schematic Not Found, Please Load a Schematic via Command or Litematica"), false);
+                player.displayClientMessage(Component.literal("§4错误：原理图未找到，请在投影内加载一个原理图并站在原理图内"), false);
                 return false;
             }
 
-            player.displayClientMessage(Component.literal("§4Error: Schematic Not Found, Using Pre-Loaded Schematic..."), false);
+            player.displayClientMessage(Component.literal("§4警告：原理图未找到，使用先前加载的原理图"), false);
             return true;
         }
 
         if (schematic == Config.lastSchematic) return true;
 
-        player.displayClientMessage(Component.literal("§bSchematic Has Changed, Loading new Schematic..."), false);
+        player.displayClientMessage(Component.literal("§b原理图以更新，正在加载新的原理图"), false);
         querySchematic(schematic);
 
         return true;
@@ -129,7 +129,7 @@ public class MaterialController {
 
         assert client.player != null;
         client.execute(() ->
-                client.player.displayClientMessage(Component.literal("Loading Succeeded"), false)
+                client.player.displayClientMessage(Component.literal("加载成功"), false)
         );
         Config.targets.addAll(Arrays.asList(Config.Carpets.values()));
     }

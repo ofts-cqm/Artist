@@ -53,7 +53,7 @@ public class Config {
 
     public record ConfigDetails(HandleMethod handleMethod, String enderChestCommand){
         public ConfigDetails(){
-            this(HandleMethod.SHULKER_BOX, "yck");
+            this(HandleMethod.SHULKER_BOX, "myx");
         }
     }
 

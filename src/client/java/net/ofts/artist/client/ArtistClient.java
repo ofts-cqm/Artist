@@ -24,7 +24,7 @@ public class ArtistClient implements ClientModInitializer {
         });
         ClientPlayConnectionEvents.JOIN.register((a, b, c) -> WatchDog.start());
         keyBinding = KeyBindingHelper.registerKeyBinding(new KeyMapping(
-                "Toggle Painting",
+                "开启打印",
                 InputConstants.Type.KEYSYM,
                 GLFW.GLFW_KEY_Y,
                 KeyMapping.Category.GAMEPLAY

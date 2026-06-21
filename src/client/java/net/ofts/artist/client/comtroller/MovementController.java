@@ -48,7 +48,7 @@ public class MovementController {
         assert player != null;
         botInput = getOrInstall(player).setSneak(false);
         RawKeyInjector.enablePrinter();
-        player.displayClientMessage(Component.literal("Start Painting!"), false);
+        player.displayClientMessage(Component.literal("开始打印"), false);
     }
 
     public static void stop(){
@@ -158,8 +158,8 @@ public class MovementController {
 
         if (!has) {
             pause();
-            client.execute(() -> player.displayClientMessage(Component.literal("Task Finished!"), false));
-            DesktopNotifier.notify("Artist", "Task Finished!");
+            client.execute(() -> player.displayClientMessage(Component.literal("任务完成！"), false));
+            DesktopNotifier.notify("Artist", "任务完成");
         }
 
         direction = direction.normalize();
@@ -198,7 +198,7 @@ public class MovementController {
             update();
         } catch (Exception e) {
             if (Minecraft.getInstance().player != null)
-                Minecraft.getInstance().player.displayClientMessage(Component.literal("Error During Update"), false);
+                Minecraft.getInstance().player.displayClientMessage(Component.literal("行动失败"), false);
         }
     }
 
