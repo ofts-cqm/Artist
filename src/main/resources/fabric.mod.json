@@ -28,6 +28,11 @@
     "fabricloader": ">=${loader_version}",
     "fabric-api": "*",
     "minecraft": "${minecraft_version}",
+    "java": ">=25",
+    "malilib": ">=${malilib_version}",
+    "litematica": ">=${litematica_version}"
+  },
+  "suggests": {
     "ofts-litematica-printer": "*"
   }
 }

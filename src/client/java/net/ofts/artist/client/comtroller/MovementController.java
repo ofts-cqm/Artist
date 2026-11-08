@@ -48,7 +48,7 @@ public class MovementController {
         assert player != null;
         botInput = getOrInstall(player).setSneak(false);
         RawKeyInjector.enablePrinter();
-        player.displayClientMessage(Component.literal("Start Painting!"), false);
+        player.sendSystemMessage(Component.literal("Start Painting!"));
     }
 
     public static void stop(){
@@ -158,7 +158,7 @@ public class MovementController {
 
         if (!has) {
             pause();
-            client.execute(() -> player.displayClientMessage(Component.literal("Task Finished!"), false));
+            client.execute(() -> player.sendSystemMessage(Component.literal("Task Finished!")));
             DesktopNotifier.notify("Artist", "Task Finished!");
         }
 
@@ -198,11 +198,14 @@ public class MovementController {
             update();
         } catch (Exception e) {
             if (Minecraft.getInstance().player != null)
-                Minecraft.getInstance().player.displayClientMessage(Component.literal("Error During Update"), false);
+                Minecraft.getInstance().player.sendSystemMessage(Component.literal("Error During Update"));
         }
     }
 
     static {
-        Executors.newScheduledThreadPool(1).scheduleWithFixedDelay(MovementController::runUpdate, 1000, 1000, TimeUnit.MILLISECONDS);
+        // Keep background polling from blocking Minecraft's shutdown watchdog.
+        Executors.newSingleThreadScheduledExecutor(
+                Thread.ofPlatform().daemon().name("Artist movement-", 0).factory())
+                .scheduleWithFixedDelay(MovementController::runUpdate, 1000, 1000, TimeUnit.MILLISECONDS);
     }
 }

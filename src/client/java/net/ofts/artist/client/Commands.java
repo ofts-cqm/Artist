@@ -55,7 +55,7 @@ public class Commands {
 
     private static void sendMessage(String s) {
         assert Minecraft.getInstance().player != null;
-        Minecraft.getInstance().player.displayClientMessage(Component.literal(s), false);
+        Minecraft.getInstance().player.sendSystemMessage(Component.literal(s));
     }
 
     private static int sendUsageGuide(){
@@ -73,7 +73,7 @@ public class Commands {
             return 1;
         }
         assert Minecraft.getInstance().player != null;
-        Minecraft.getInstance().player.displayClientMessage(Component.literal("Note: you are using a deprecated command!"), false);
+        Minecraft.getInstance().player.sendSystemMessage(Component.literal("Note: you are using a deprecated command!"));
         Path schematicsDir = Minecraft.getInstance().gameDirectory.toPath().resolve("schematics");
         Config.schematicPath = schematicsDir.resolve(name);
         MaterialController.start(true);
@@ -88,14 +88,14 @@ public class Commands {
                 found.set(true);
                 Minecraft.getInstance().execute(() -> {
                     assert Minecraft.getInstance().player != null;
-                    Minecraft.getInstance().player.displayClientMessage(Component.literal("Found Carpet " + type.name() + " at position " + pos.toShortString()), false);
+                    Minecraft.getInstance().player.sendSystemMessage(Component.literal("Found Carpet " + type.name() + " at position " + pos.toShortString()));
                 });
             }
         });
         if (!found.get()){
             Minecraft.getInstance().execute(() -> {
                 assert Minecraft.getInstance().player != null;
-                Minecraft.getInstance().player.displayClientMessage(Component.literal("Data Not Found at Position " + pos.toShortString()), false);
+                Minecraft.getInstance().player.sendSystemMessage(Component.literal("Data Not Found at Position " + pos.toShortString()));
             });
         }
         return found.get() ? 1 : 0;
@@ -119,7 +119,7 @@ public class Commands {
         }
 
         assert Minecraft.getInstance().player != null;
-        Minecraft.getInstance().player.displayClientMessage(Component.literal("Loaded " + Config.targets.size() + " Colors!"), false);
+        Minecraft.getInstance().player.sendSystemMessage(Component.literal("Loaded " + Config.targets.size() + " Colors!"));
 
         return 1;//MaterialController.updateState(true) ? 1 : 0;
     }
@@ -128,10 +128,10 @@ public class Commands {
         LocalPlayer player = Minecraft.getInstance().player;
         assert player != null;
 
-        player.displayClientMessage(Component.literal("Current Loaded Schematic: " + (Config.lastSchematic == null ? "NOT LOADED" : Config.lastSchematic.getName())), false);
-        player.displayClientMessage(Component.literal("Current Targets: "), false);
+        player.sendSystemMessage(Component.literal("Current Loaded Schematic: " + (Config.lastSchematic == null ? "NOT LOADED" : Config.lastSchematic.getName())));
+        player.sendSystemMessage(Component.literal("Current Targets: "));
         for (Config.Carpets target : Config.targets) {
-            player.displayClientMessage(Component.literal(target.name()), false);
+            player.sendSystemMessage(Component.literal(target.name()));
         }
         return 1;
     }

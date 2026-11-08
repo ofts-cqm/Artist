@@ -26,21 +26,21 @@ public class Config {
     }
 
     public enum Carpets {
-        WHITE("minecraft:white_carpet", Blocks.WHITE_CARPET),
-        LIGHT_GRAY("minecraft:light_gray_carpet", Blocks.LIGHT_GRAY_CARPET),
-        BLACK("minecraft:black_carpet", Blocks.BLACK_CARPET),
-        BROWN("minecraft:brown_carpet", Blocks.BROWN_CARPET),
-        RED("minecraft:red_carpet", Blocks.RED_CARPET),
-        ORANGE("minecraft:orange_carpet", Blocks.ORANGE_CARPET),
-        YELLOW("minecraft:yellow_carpet", Blocks.YELLOW_CARPET),
-        LIME("minecraft:lime_carpet", Blocks.LIME_CARPET),
-        GREEN("minecraft:green_carpet", Blocks.GREEN_CARPET),
-        LIGHT_BLUE("minecraft:light_blue_carpet", Blocks.LIGHT_BLUE_CARPET),
-        CYAN("minecraft:cyan_carpet", Blocks.CYAN_CARPET),
-        BLUE("minecraft:blue_carpet", Blocks.BLUE_CARPET),
-        PINK("minecraft:pink_carpet", Blocks.PINK_CARPET),
-        MAGENTA("minecraft:magenta_carpet", Blocks.MAGENTA_CARPET),
-        PURPLE("minecraft:purple_carpet", Blocks.PURPLE_CARPET);
+        WHITE("minecraft:white_carpet", Blocks.CARPET.white()),
+        LIGHT_GRAY("minecraft:light_gray_carpet", Blocks.CARPET.lightGray()),
+        BLACK("minecraft:black_carpet", Blocks.CARPET.black()),
+        BROWN("minecraft:brown_carpet", Blocks.CARPET.brown()),
+        RED("minecraft:red_carpet", Blocks.CARPET.red()),
+        ORANGE("minecraft:orange_carpet", Blocks.CARPET.orange()),
+        YELLOW("minecraft:yellow_carpet", Blocks.CARPET.yellow()),
+        LIME("minecraft:lime_carpet", Blocks.CARPET.lime()),
+        GREEN("minecraft:green_carpet", Blocks.CARPET.green()),
+        LIGHT_BLUE("minecraft:light_blue_carpet", Blocks.CARPET.lightBlue()),
+        CYAN("minecraft:cyan_carpet", Blocks.CARPET.cyan()),
+        BLUE("minecraft:blue_carpet", Blocks.CARPET.blue()),
+        PINK("minecraft:pink_carpet", Blocks.CARPET.pink()),
+        MAGENTA("minecraft:magenta_carpet", Blocks.CARPET.magenta()),
+        PURPLE("minecraft:purple_carpet", Blocks.CARPET.purple());
 
         public final String id;
         public final Block block;

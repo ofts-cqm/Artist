@@ -13,7 +13,7 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 public class ClientPackageInterceptor {
     // intercept any attempt to close the container while we are processing it
     @Inject(method = "send", at = @At("HEAD"), cancellable = true)
-    private static void onSend(Packet<?> packet, CallbackInfo ci){
+    private void onSend(Packet<?> packet, CallbackInfo ci){
         if (packet instanceof ServerboundContainerClosePacket container && MenuManager.isProcessing(container.getContainerId())){
             ci.cancel();
         }

@@ -59,17 +59,17 @@ public class MaterialController {
 
         if (schematic == null) {
             if (Config.lastSchematic == null) {
-                player.displayClientMessage(Component.literal("§4Error: Schematic Not Found, Please Load a Schematic via Command or Litematica"), false);
+                player.sendSystemMessage(Component.literal("§4Error: Schematic Not Found, Please Load a Schematic via Command or Litematica"));
                 return false;
             }
 
-            player.displayClientMessage(Component.literal("§4Error: Schematic Not Found, Using Pre-Loaded Schematic..."), false);
+            player.sendSystemMessage(Component.literal("§4Error: Schematic Not Found, Using Pre-Loaded Schematic..."));
             return true;
         }
 
         if (schematic == Config.lastSchematic) return true;
 
-        player.displayClientMessage(Component.literal("§bSchematic Has Changed, Loading new Schematic..."), false);
+        player.sendSystemMessage(Component.literal("§bSchematic Has Changed, Loading new Schematic..."));
         querySchematic(schematic);
 
         return true;
@@ -78,7 +78,7 @@ public class MaterialController {
     private static void reportError(String name){
         LOGGER.error("Failed to find tag {} in nbt", name);
         assert client.player != null;
-        client.player.displayClientMessage(Component.literal("§4Failed to fin tag: " + name), false);
+        client.player.sendSystemMessage(Component.literal("§4Failed to fin tag: " + name));
         throw new RuntimeException("Tag Not Found");
     }
 
@@ -105,7 +105,7 @@ public class MaterialController {
                         BlockPos pos = new BlockPos(i, j, k).offset(position);
 
                         if (!state.is(BlockTags.WOOL_CARPETS)) continue;
-                        if (state.is(Blocks.GRAY_CARPET)){
+                        if (state.is(Blocks.CARPET.gray())){
                             Config.emptyPos.add(pos);
                             continue;
                         }
@@ -129,7 +129,7 @@ public class MaterialController {
 
         assert client.player != null;
         client.execute(() ->
-                client.player.displayClientMessage(Component.literal("Loading Succeeded"), false)
+                client.player.sendSystemMessage(Component.literal("Loading Succeeded"))
         );
         Config.targets.addAll(Arrays.asList(Config.Carpets.values()));
     }
@@ -138,7 +138,7 @@ public class MaterialController {
     private static void querySchematic(){
         assert client.player != null;
         client.execute(() ->
-            client.player.displayClientMessage(Component.literal("§6Loading Schematics " + Config.schematicPath.getFileName().toString()), false)
+            client.player.sendSystemMessage(Component.literal("§6Loading Schematics " + Config.schematicPath.getFileName().toString()))
         );
         CompoundTag root;
 
@@ -146,7 +146,7 @@ public class MaterialController {
             root = NbtIo.readCompressed(Config.schematicPath, NbtAccounter.unlimitedHeap());
         } catch (IOException e) {
             LOGGER.error("Cannot resolve schematic file: {}", e.getMessage());
-            client.player.displayClientMessage(Component.literal("§4Cannot resolve schematic file: " + Config.schematicPath.getFileName().toString()), false);
+            client.player.sendSystemMessage(Component.literal("§4Cannot resolve schematic file: " + Config.schematicPath.getFileName().toString()));
             return;
         }
 
@@ -215,7 +215,7 @@ public class MaterialController {
         });
 
         client.execute(() ->
-                client.player.displayClientMessage(Component.literal("Loading Succeeded"), false)
+                client.player.sendSystemMessage(Component.literal("Loading Succeeded"))
         );
         Config.targets.addAll(Arrays.asList(Config.Carpets.values()));
         //updateState(false);

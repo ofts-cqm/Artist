@@ -54,6 +54,9 @@ public class WatchDog {
     }
 
     static {
-        Executors.newScheduledThreadPool(1).scheduleWithFixedDelay(WatchDog::check, 500, 500, TimeUnit.MILLISECONDS);
+        // Keep background polling from blocking Minecraft's shutdown watchdog.
+        Executors.newSingleThreadScheduledExecutor(
+                Thread.ofPlatform().daemon().name("Artist watchdog-", 0).factory())
+                .scheduleWithFixedDelay(WatchDog::check, 500, 500, TimeUnit.MILLISECONDS);
     }
 }

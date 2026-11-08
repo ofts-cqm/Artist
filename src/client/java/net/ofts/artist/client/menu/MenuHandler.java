@@ -8,7 +8,7 @@ import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
 import net.minecraft.network.HashedStack;
 import net.minecraft.network.protocol.game.ServerboundContainerClickPacket;
 import net.minecraft.world.inventory.AbstractContainerMenu;
-import net.minecraft.world.inventory.ClickType;
+import net.minecraft.world.inventory.ContainerInput;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -20,7 +20,7 @@ public record MenuHandler(int id, String menuMatcher, Function<AbstractContainer
         return slotHandler.apply(screen);
     }
 
-    public static void sendClick(AbstractContainerMenu menu, int slot, ClickType type, byte button){
+    public static void sendClick(AbstractContainerMenu menu, int slot, ContainerInput type, byte button){
         LOGGER.info("sending click @ slot={} to menu {}", slot, menu.containerId);
 
         Minecraft client = Minecraft.getInstance();

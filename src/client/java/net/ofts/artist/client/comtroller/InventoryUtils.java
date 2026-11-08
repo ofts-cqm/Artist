@@ -5,7 +5,7 @@ import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
 import net.minecraft.core.NonNullList;
 import net.minecraft.world.Container;
 import net.minecraft.world.entity.player.Inventory;
-import net.minecraft.world.inventory.ClickType;
+import net.minecraft.world.inventory.ContainerInput;
 import net.minecraft.world.inventory.Slot;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
@@ -28,7 +28,7 @@ public class InventoryUtils {
         for (int i = from; i < to; i++) {
             Slot slot = slots.get(i);
             if (slot.getItem().is(required)){
-                MenuHandler.sendClick(screen.getMenu(), i, ClickType.QUICK_MOVE, (byte) 0);
+                MenuHandler.sendClick(screen.getMenu(), i, ContainerInput.QUICK_MOVE, (byte) 0);
                 clicked++;
                 sleep();
                 if (clicked >= amount) break;

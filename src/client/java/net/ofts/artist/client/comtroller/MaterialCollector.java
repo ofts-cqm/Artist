@@ -18,6 +18,7 @@ import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.component.SwingAnimation;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.entity.ChestBlockEntity;
@@ -43,7 +44,7 @@ public class MaterialCollector {
 
         for (MaterialListEntry material : materials) {
             ItemStack item = material.getStack();
-            if (!item.is(ItemTags.WOOL_CARPETS) || item.is(Items.GRAY_CARPET)) continue;
+            if (!item.is(ItemTags.WOOL_CARPETS) || item.is(Items.CARPET.gray())) continue;
 
             int stack = (material.getCountTotal() + 64) / 64;
             required.add(new Pair<>(item.getItem(), (int)(stack * 1.05)));
@@ -67,7 +68,7 @@ public class MaterialCollector {
 
             if (currentIndex == required.size()){
                 assert Minecraft.getInstance().player != null;
-                Minecraft.getInstance().player.displayClientMessage(Component.literal("All Materials Are Collected!"), false);
+                Minecraft.getInstance().player.sendSystemMessage(Component.literal("All Materials Are Collected!"));
                 return;
             }
 
@@ -109,7 +110,7 @@ public class MaterialCollector {
             chestIndex++;
             if (chestIndex == chests.get(currentCarpet).size()){
                 assert Minecraft.getInstance().player != null;
-                Minecraft.getInstance().player.displayClientMessage(Component.literal("Not Enough Carpets In Stock!"), false);
+                Minecraft.getInstance().player.sendSystemMessage(Component.literal("Not Enough Carpets In Stock!"));
                 return true;
             }
         }
@@ -144,7 +145,7 @@ public class MaterialCollector {
                     gameMode.useItemOn(player, InteractionHand.MAIN_HAND, hit);
 
             if (result.consumesAction()) {
-                player.swing(InteractionHand.MAIN_HAND);
+                player.swing(InteractionHand.MAIN_HAND, SwingAnimation.DEFAULT, false);
             }
         });
     }

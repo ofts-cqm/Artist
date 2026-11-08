@@ -9,7 +9,7 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.tags.ItemTags;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.entity.player.Inventory;
-import net.minecraft.world.inventory.ClickType;
+import net.minecraft.world.inventory.ContainerInput;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
@@ -30,7 +30,7 @@ public class StockController {
         assert player != null;
 
         RawKeyInjector.disablePrinter();
-        player.displayClientMessage(Component.literal("Not Enough Block: ").append(target.getName()), false);
+        player.sendSystemMessage(Component.literal("Not Enough Block: ").append(Component.translatable(target.getDescriptionId())));
 
         if (player.getInventory().contains(ItemStack::isEmpty)){
             Config.requiredItems = target.asItem();
@@ -40,7 +40,7 @@ public class StockController {
             MenuManager.checkMenu(MenuManager.GET_CARPET_FROM_ENDER_CHEST);
             Objects.requireNonNull(Minecraft.getInstance().getConnection()).sendCommand(Config.CONFIG.enderChestCommand());
         }else{
-            player.displayClientMessage(Component.literal("Not Enough Space in Inventory! Process Terminates!"), false);
+            player.sendSystemMessage(Component.literal("Not Enough Space in Inventory! Process Terminates!"));
             DesktopNotifier.notify("Artist", "Auto Painting Paused: Not Enough Block!");
         }
     }
@@ -57,7 +57,7 @@ public class StockController {
         String target = Config.reversed ? "Space" : "Carpet";
         LocalPlayer player = Minecraft.getInstance().player;
         assert player != null;
-        player.displayClientMessage(Component.literal("Not Enough " + target + " in Ender Chest"), false);
+        player.sendSystemMessage(Component.literal("Not Enough " + target + " in Ender Chest"));
         DesktopNotifier.notify("Artist", "Not Enough " + target + " in Ender Chest");
 
         if (Config.useYCK()) {
@@ -81,8 +81,8 @@ public class StockController {
             if (i < 9)
                 inventory.setSelectedSlot(i);
             else
-                gameMode.handleInventoryMouseClick(screen.getMenu().containerId, i + 45, inventory.getSelectedSlot(), ClickType.SWAP, player);
-                //MenuHandler.sendClick(screen.getMenu(), i + 45, ClickType.SWAP, (byte)inventory.getSelectedSlot());
+                gameMode.handleContainerInput(screen.getMenu().containerId, i + 45, inventory.getSelectedSlot(), ContainerInput.SWAP, player);
+                //MenuHandler.sendClick(screen.getMenu(), i + 45, ContainerInput.SWAP, (byte)inventory.getSelectedSlot());
 
             if (player.getXRot() > 0) player.setXRot(-45);
 
@@ -107,7 +107,7 @@ public class StockController {
                     ItemContainerContents.EMPTY
             );
 
-            if(contents.stream().anyMatch(stack -> stack.is(Config.requiredItems))) return i;
+            if(contents.nonEmptyItemCopyStream().anyMatch(stack -> stack.is(Config.requiredItems))) return i;
         }
         return -1;
     }
@@ -127,7 +127,7 @@ public class StockController {
             return true;
         }
 
-        MenuHandler.sendClick(screen.getMenu(), slot, ClickType.PICKUP, (byte) 0);
+        MenuHandler.sendClick(screen.getMenu(), slot, ContainerInput.PICKUP, (byte) 0);
         MenuManager.checkMenu(shared ? MenuManager.GET_CARPET_FROM_YCK_SHARED : MenuManager.GET_CARPET_FROM_YCK);
         return false;
     }
@@ -143,7 +143,7 @@ public class StockController {
     private static boolean nextPage(AbstractContainerScreen<?> screen){
         ItemStack item = screen.getMenu().slots.get(53).getItem();
         if (item.is(Items.ARROW)){
-            MenuHandler.sendClick(screen.getMenu(), 53, ClickType.PICKUP, (byte) 0);
+            MenuHandler.sendClick(screen.getMenu(), 53, ContainerInput.PICKUP, (byte) 0);
             MenuManager.checkMenu(shared ? MenuManager.GET_CARPET_FROM_YCK_SHARED : MenuManager.GET_CARPET_FROM_YCK);
             return true;
         }
@@ -161,7 +161,7 @@ public class StockController {
             }
         }
 
-        player.displayClientMessage(Component.literal(message), false);
+        player.sendSystemMessage(Component.literal(message));
         DesktopNotifier.notify("Artist", message);
         shared = false;
     }
@@ -194,7 +194,7 @@ public class StockController {
 
         if (freeSlots == 0){
             assert Minecraft.getInstance().player != null;
-            Minecraft.getInstance().player.displayClientMessage(Component.literal("No Free Slot in Inventory"), false);
+            Minecraft.getInstance().player.sendSystemMessage(Component.literal("No Free Slot in Inventory"));
             DesktopNotifier.notify("Artist", "No Free Slot in Inventory");
             shared = false;
             return 0;
@@ -235,7 +235,7 @@ public class StockController {
 
         LocalPlayer player = Minecraft.getInstance().player;
         assert player != null;
-        player.displayClientMessage(Component.literal("Plan to pick up " + Config.requiredCount + " carpets."), false);
+        player.sendSystemMessage(Component.literal("Plan to pick up " + Config.requiredCount + " carpets."));
 
         if (InventoryUtils.getFromChest(screen, Config.requiredItems, Config.requiredCount, 0, large ? 54 : 27, player.getInventory()) != 0){
             MovementController.start();
@@ -276,7 +276,7 @@ public class StockController {
                 if (i < 9) {
                     inventory.setSelectedSlot(i);
                 } else {
-                    player.displayClientMessage(Component.literal("Error: Inventory Changed, Stopping..."), false);
+                    player.sendSystemMessage(Component.literal("Error: Inventory Changed, Stopping..."));
                     DesktopNotifier.notify("Artist", "Error: Inventory Changed, Stopping...");
                     doRightClick = false;
                     failedCount = 0;
@@ -286,7 +286,7 @@ public class StockController {
             gameMode.useItem(player, InteractionHand.MAIN_HAND);
             failedCount++;
             if (failedCount >= 5){
-                player.displayClientMessage(Component.literal("Error: Open Shulker Box Not Working, Stopping..."), false);
+                player.sendSystemMessage(Component.literal("Error: Open Shulker Box Not Working, Stopping..."));
                 DesktopNotifier.notify("Artist", "Error: Open Shulker Box Not Working, Stopping...");
             }else if (failedCount >= 3){
                 MovementController.getOrInstall(player).setSneak(false);
@@ -302,6 +302,9 @@ public class StockController {
     }
 
     static {
-        Executors.newScheduledThreadPool(1).scheduleWithFixedDelay(StockController::rightClick, 500, 500, TimeUnit.MILLISECONDS);
+        // Keep background polling from blocking Minecraft's shutdown watchdog.
+        Executors.newSingleThreadScheduledExecutor(
+                Thread.ofPlatform().daemon().name("Artist stock-", 0).factory())
+                .scheduleWithFixedDelay(StockController::rightClick, 500, 500, TimeUnit.MILLISECONDS);
     }
 }
